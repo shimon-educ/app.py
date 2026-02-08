@@ -117,23 +117,21 @@ if input_func:
             if st.session_state.get('force_plot'):
                 show_plot = True
 
-            # מערכת צירים עם אסימפטוטות
+            # מערכת צירים עם אסימפטוטות בלבד
             if show_plot:
                 st.subheader("מיקום האסימפטוטות על הצירים:")
                 fig = go.Figure()
-                
-                # הוספת אסימפטוטות אנכיות (אדום)
                 for pt in true_pts:
                     fig.add_vline(x=float(pt), line_dash="dash", line_color="red", 
                                   annotation_text=f"x={pt}", annotation_position="top")
                 
-                # --- השדרוג למערכת הצירים ---
+                # --- החלק המודגש: צירים חזקים וברורים ---
                 fig.update_xaxes(
-                    zeroline=True, zerolinewidth=4, zerolinecolor='black', # ציר X עבה
+                    zeroline=True, zerolinewidth=4, zerolinecolor='black',
                     showgrid=True, gridcolor='lightgray', range=[-10, 10]
                 )
                 fig.update_yaxes(
-                    zeroline=True, zerolinewidth=4, zerolinecolor='black', # ציר Y עבה
+                    zeroline=True, zerolinewidth=4, zerolinecolor='black',
                     showgrid=True, gridcolor='lightgray', range=[-10, 10]
                 )
                 
@@ -143,3 +141,17 @@ if input_func:
                     height=500
                 )
                 st.plotly_chart(fig)
+                
+                st.info("אלו ה'קירות' שמגבילים את הפונקציה. עכשיו בוא נראה מה קורה לשיפוע שלה.")
+
+                st.markdown("---")
+                st.subheader("השלב הבא: גזירה")
+                if st.checkbox("בדוק את הנגזרת שחישבת במחברת"):
+                    st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
+
+    except Exception as e:
+        st.error("הביטוי המתמטי לא תקין.")
+
+if st.sidebar.button("התחל חקירה חדשה"):
+    st.session_state.clear()
+    st.rerun()
