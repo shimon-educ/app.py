@@ -36,9 +36,9 @@ if input_func:
         st.latex(r"f(x) = " + sp.latex(f))
 
         with st.expander("🤔 איך מוצאים תחום הגדרה? (הסבר תיאורטי)"):
-            st.write("כדי למצוא תחום הגדרה של פונקציית שבר, עלינו למצוא אילו ערכים מאפסים את המכנה ולהוציא אותם מהתחום.")
+            st.write("בפונקציית שבר, המכנה אסור שיהיה שווה לאפס. לכן נשווה את המכנה ל-0 ונמצא את ה-x-ים ה'אסורים'.")
         
-        user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
+        user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 3, 1-):", key="domain_input")
         
         show_step_2 = False
         
@@ -46,18 +46,18 @@ if input_func:
             try:
                 user_pts = sorted([float(p.strip()) for p in user_domain.split(",")])
                 if np.allclose(user_pts, [float(p) for p in true_pts]):
-                    st.success("מעולה! אלו בדיוק הערכים.")
+                    st.success("מעולה! אלו בדיוק הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
-                    st.error("לא בדיוק... נסה להיעזר ברמזים.")
+                    st.error("לא בדיוק... נסה להיעזר ברמזים למטה.")
                     
-                    st.markdown("### 💡 עזרה בפתרון:")
-                    if st.checkbox("צריך רמז (המשוואה)?"):
-                        st.write("פתור את המשוואה:")
+                    st.markdown("### 💡 עזרה בפתרון המכנה:")
+                    if st.checkbox("צריך רמז (הצגת המשוואה)?"):
+                        st.write("עליך לפתור את המשוואה הבאה:")
                         st.latex(sp.latex(den) + "= 0")
                         
-                    if st.button("הצג פתרון מלא (נוסחת השורשים) והמשך"):
-                        st.info("מהלך הפתרון:")
+                    if st.button("התייאשתי, הצג פתרון מלא והמשך"):
+                        st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
                         try:
                             p = sp.Poly(den, x)
                             coeffs = p.all_coeffs()
@@ -66,41 +66,61 @@ if input_func:
                                 delta = b**2 - 4*a*c
                                 st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
                                 st.latex(f"x_{{1,2}} = \\frac{{-({format_num(b)}) \\pm \\sqrt{{{format_num(delta)}}}}}{{{2*format_num(a)}}}")
-                                if delta >= 0:
-                                    st.write(f"הפתרונות הם: {true_pts_str}")
+                                st.write(f"השורשים שמצאנו הם: **{true_pts_str}**")
+                            else:
+                                st.write(f"הפתרונות הם: **{true_pts_str}**")
                         except:
-                            st.write(f"הפתרונות למשוואה הם: {true_pts_str}")
+                            st.write(f"הערכים הם: **{true_pts_str}**")
                         
                         st.session_state['force_step_2'] = True
                         st.rerun()
             except:
-                st.warning("נא להזין מספרים מופרדים בפסיק.")
+                st.warning("נא להזין מספרים מופרדים בפסיק (למשל: 1, -3).")
 
         if st.session_state.get('force_step_2') or show_step_2:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
+            # קלט מהמשתמש
+            user_as_v = st.text_input("1. מהן האסימפטוטות האנכיות?", key="v_in")
+            user_as_h = st.text_input("2. מהי האסימפטוטה האופקית? (מספר או 'אין')", key="h_in")
+            
             col1, col2 = st.columns(2)
             with col1:
                 with st.expander("💡 איך מוצאים אנכית?"):
-                    st.write("אלו נקודות אי-ההגדרה שמצאת קודם:")
-                    st.info(f"x = {true_pts_str}")
-                    st.write("🔗 [הסבר מפורט על אסימפטוטה אנכית בשברים](https://ischool.co.il/math/analisys/rational-functions/vertical-asymptote/)")
+                    st.write("אלו הן נקודות אי-ההגדרה שמצאת בשלב 1 (בתנאי שהן לא מאפסות את המונה).")
+                    st.info(f"הנקודות שמצאת: {true_pts_str}")
+                    st.write("🔗 [הסבר על אסימפטוטה אנכית](https://ischool.co.il/math/analisys/rational-functions/vertical-asymptote/)")
             
             with col2:
                 with st.expander("💡 איך מוצאים אופקית?"):
-                    st.write("נבדוק את החזקות הגבוהות:")
-                    st.info("1. מכנה חזק: y=0\n2. חזקות שוות: יחס מקדמים\n3. מונה חזק: אין")
-                    st.write("🔗 [הסבר מפורט על אסימפטוטה אופקית בשברים](https://ischool.co.il/math/analisys/rational-functions/horizontal-asymptote/)")
+                    st.write("נבדוק את החזקה הגבוהה ביותר במונה ($n$) ובמכנה ($m$):")
+                    st.info("""
+                    * **מכנה חזק יותר ($n < m$):** האסימפטוטה היא **y = 0**.
+                    * **חזקות שוות ($n = m$):** האסימפטוטה היא **יחס המקדמים**.
+                    * **מונה חזק יותר ($n > m$):** **אין אסימפטוטה אופקית**.
+                    """)
+                    st.write("🔗 [הסבר על אסימפטוטה אופקית](https://ischool.co.il/math/analisys/rational-functions/horizontal-asymptote/)")
 
-            if st.button("סרטט גרף אסימפטוטות"):
+            if st.button("סרטט אסימפטוטות על הגרף"):
                 fig = go.Figure()
+                # סרטוט קווים אנכיים
                 for pt in true_pts:
                     fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
-                h_val = sp.limit(f, x, sp.oo)
-                if h_val.is_finite:
-                    fig.add_hline(y=float(h_val), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_val)}")
-                fig.update_layout(height=400, template="simple_white")
+                
+                # חישוב וסרטוט קו אופקי
+                h_limit = sp.limit(f, x, sp.oo)
+                if h_limit.is_finite:
+                    fig.add_hline(y=float(h_limit), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_limit)}")
+                
+                fig.update_layout(height=450, template="simple_white", title="מיקום האסימפטוטות")
+                fig.update_xaxes(range=[-10, 10], zeroline=True, zerolinecolor="black")
+                fig.update_yaxes(range=[-10, 10], zeroline=True, zerolinecolor="black")
                 st.plotly_chart(fig)
-    except:
-        st.error("טעות בכתיבת הפונקציה.")
+
+    except Exception as e:
+        st.error("הפונקציה שהוזנה אינה תקינה. השתמש ב-* לכפל וב-** לחזקה.")
+
+if st.sidebar.button("התחל מהתחלה"):
+    st.session_state.clear()
+    st.rerun()
