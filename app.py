@@ -55,7 +55,6 @@ if input_func:
                 else:
                     st.error("לא בדיוק... הערכים האלו לא מאפסים את המכנה.")
                     
-                    # הרמזים שחזרו למקומם
                     if st.checkbox("צריך רמז ראשון?"):
                         st.write("עליך לפתור את המשוואה:")
                         st.latex(sp.latex(den) + "= 0")
@@ -91,11 +90,9 @@ if input_func:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
-            # אסימפטוטות אנכיות
             st.subheader("1. אסימפטוטות אנכיות")
             user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (למשל: 3, 1-):", key="asymp_input")
             
-            # אסימפטוטה אופקית
             st.subheader("2. אסימפטוטה אופקית")
             user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
             
@@ -103,7 +100,6 @@ if input_func:
             if user_asymp and user_horiz:
                 true_horiz = sp.limit(f, x, sp.oo)
                 try:
-                    # בדיקת תשובות
                     user_asy_pts = sorted([float(p.strip()) for p in user_asymp.split(",")])
                     correct_v = np.allclose(user_asy_pts, [float(p) for p in true_pts])
                     correct_h = np.isclose(float(user_horiz), float(true_horiz))
@@ -112,8 +108,19 @@ if input_func:
                         st.success("מעולה! מצאת את כל האסימפטוטות.")
                         show_plot = True
                     else:
-                        if not correct_v: st.error("יש טעות באסימפטוטות האנכיות.")
-                        if not correct_h: st.error("יש טעות באסימפטוטה האופקית.")
+                        if not correct_v:
+                            st.error("יש טעות באסימפטוטות האנכיות.")
+                            # כאן הוספנו את העזרה העצמית לתלמיד:
+                            with st.expander("🔍 רמז לאסימפטוטה אנכית"):
+                                st.write("זוכר את שלב 1? מצאת שם ערכים שמאפסים את המכנה.")
+                                st.info(f"הערכים שמצאת היו: **{true_pts_str}**")
+                                st.write("אסימפטוטה אנכית מתרחשת בדרך כלל בדיוק בנקודות האלו, כי שם הפונקציה לא מוגדרת והגרף 'בורח' למעלה או למטה.")
+                        
+                        if not correct_h:
+                            st.error("יש טעות באסימפטוטה האופקית.")
+                            with st.expander("🔍 רמז לאסימפטוטה אופקית"):
+                                st.write("באסימפטוטה אופקית אנחנו בודקים מה קורה כש-$x$ גדל מאוד (שואף לאינסוף).")
+                                st.write("השווה את החזקה הגבוהה ביותר במונה לזו שבמכנה.")
                 except: pass
 
             if st.button("הצג פתרון וסרטט"):
@@ -122,10 +129,8 @@ if input_func:
             if show_plot:
                 st.subheader("מיקום האסימפטוטות על הצירים:")
                 fig = go.Figure()
-                # אנכיות (אדום)
                 for pt in true_pts:
                     fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
-                # אופקית (כחול)
                 h_val = float(sp.limit(f, x, sp.oo))
                 fig.add_hline(y=h_val, line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_val)}")
                 
