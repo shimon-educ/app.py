@@ -9,7 +9,6 @@ st.set_page_config(page_title="MathBuddy", layout="centered")
 st.title("🧪 מעבדת החקירה של שמעון")
 st.write("בוא נחקור את הפונקציה צעד אחר צעד.")
 
-# פונקציית עזר לעיצוב מספרים
 def format_num(n):
     try:
         n_float = float(n)
@@ -26,119 +25,95 @@ if input_func:
         f = sp.sympify(input_func)
         num, den = sp.fraction(f)
         true_domain = sp.solve(den, x)
-        
-        # הכנת פתרונות נקיים
         true_pts = sorted([format_num(p.evalf()) for p in true_domain])
         true_pts_str = ", ".join([str(p) for p in true_pts])
         
+        # חישוב אסימפטוטה אופקית (גבול באינסוף)
+        horiz_asy = sp.limit(f, x, sp.oo)
+        horiz_val = format_num(horiz_asy.evalf())
+
         # --- שלב 1: תחום הגדרה ---
         st.header("שלב 1: תחום הגדרה")
         st.latex(r"f(x) = " + sp.latex(f))
 
         with st.expander("🤔 איך מוצאים תחום הגדרה? (הסבר תיאורטי)"):
-            st.write("""
-            **מה זה בכלל תחום הגדרה?**
-            במתמטיקה, אסור לחלק באפס. לכן עלינו למצוא אילו ערכי x מאפסים את המכנה ולהוציא אותם מהתחום.
-            **השלבים:** משווים את המכנה לאפס ($המכנה = 0$) ופתורים את המשוואה.
-            """)
+            st.write("במתמטיקה אסור לחלק באפס. לכן נשווה את המכנה לאפס ונמצא את ה-x הבעייתיים.")
         
-        user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
-        
-        show_step_2 = False
-        
+        user_domain = st.text_input("הזן ערכים שמאפסים את המכנה:", key="domain_input")
+        step_1_passed = False
         if user_domain:
             try:
                 user_pts = sorted([float(p.strip()) for p in user_domain.split(",")])
                 if np.allclose(user_pts, [float(p) for p in true_pts]):
-                    st.success("כל הכבוד! אלו בדיוק הערכים שמאפסים את המכנה.")
-                    show_step_2 = True
+                    st.success("נכון!")
+                    step_1_passed = True
                 else:
-                    st.error("לא בדיוק... הערכים האלו לא מאפסים את המכנה.")
-                    
-                    if st.checkbox("צריך רמז ראשון?"):
-                        st.write("עליך לפתור את המשוואה:")
-                        st.latex(sp.latex(den) + "= 0")
-                        
-                    if st.checkbox("צריך עזרה בפירוק המכנה?"):
-                        st.write("אפשר לכתוב את המכנה כך:")
-                        st.latex(sp.latex(sp.factor(den)) + "= 0")
-
-                    if st.button("התייאשתי, הצג פתרון והמשך"):
-                        st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
-                        try:
-                            p = sp.Poly(den, x)
-                            coeffs = p.all_coeffs()
-                            if len(coeffs) == 3:
-                                a, b, c = [format_num(v) for v in coeffs]
-                                st.write(f"המקדמים הם: $a={a}, b={b}, c={c}$")
-                                st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
-                                delta = b**2 - 4*a*c
-                                st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \cdot {a} \cdot {c}}}}}{{2 \cdot {a}}}")
-                                st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{delta}}}}}{{{2*a}}}")
-                        except: pass
-                        st.success(f"הערכים המאפסים הם: {true_pts_str}")
+                    st.error("לא מדויק.")
+                    if st.button("התייאשתי, הצג פתרון שורשים"):
                         st.session_state['force_step_2'] = True
-                        st.rerun()
-            except:
-                st.warning("נא להזין מספרים מופרדים בפסיק.")
+            except: st.warning("הזן מספרים עם פסיק.")
 
         if st.session_state.get('force_step_2'):
-            show_step_2 = True
+            step_1_passed = True
+            st.info(f"הערכים הם: {true_pts_str}")
 
         # --- שלב 2: אסימפטוטות אנכיות ---
-        if show_step_2:
+        step_2_passed = False
+        if step_1_passed:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות אנכיות")
+            st.write("מהן משוואות האסימפטוטות האנכיות?")
+            user_asymp_v = st.text_input("הזן ערכי x (למשל: 3, 1-):", key="v_asymp")
             
-            with st.expander("🤔 מהן אסימפטוטות אנכיות? (הסבר תיאורטי)"):
+            if user_asymp_v:
+                try:
+                    v_pts = sorted([float(p.strip()) for p in user_asymp_v.split(",")])
+                    if np.allclose(v_pts, [float(p) for p in true_pts]):
+                        st.success("נכון! אלו ה'קירות' האנכיים.")
+                        step_2_passed = True
+                    else: st.error("נסה שוב.")
+                except: pass
+            
+            if st.button("התייאשתי, סמן אסימפטוטות אנכיות"):
+                step_2_passed = True
+                st.session_state['v_asymp_done'] = True
+
+        # --- שלב 3: אסימפטוטה אופקית ---
+        step_3_passed = False
+        if step_2_passed or st.session_state.get('v_asymp_done'):
+            st.markdown("---")
+            st.header("שלב 3: אסימפטוטה אופקית")
+            
+            with st.expander("🤔 איך מוצאים אסימפטוטה אופקית?"):
                 st.write("""
-                אסימפטוטה אנכית היא קו ישר שהגרף מתקרב אליו מאוד אבל לא נוגע בו.
-                בפונקציות כאלו, **נקודות אי-ההגדרה** שמצאנו קודם הן האסימפטוטות האנכיות.
+                אסימפטוטה אופקית בודקת מה קורה ל-y כשה-x הופך למספר ענק ($ \infty $).
+                **טיפ מהיר:** * אם החזקה הכי גבוהה במונה ובמכנה שווה (כמו $x^2/x^2$), האסימפטוטה היא יחס המקדמים.
+                * למשל ב-$f(x) = \\frac{2x^2}{1x^2+5}$, האסימפטוטה היא $y = \\frac{2}{1} = 2$.
                 """)
 
-            st.write("על סמך מה שמצאנו, מהן משוואות האסימפטוטות האנכיות?")
-            user_asymp = st.text_input("הזן את ערכי ה-x (למשל: 3, 1-):", key="asymp_input")
+            user_asymp_h = st.text_input("מהי האסימפטוטה האופקית? כתוב רק את המספר (y=?):", key="h_asymp")
             
-            show_plot = False
-            if user_asymp:
+            if user_asymp_h:
                 try:
-                    user_asy_pts = sorted([float(p.strip()) for p in user_asymp.split(",")])
-                    if np.allclose(user_asy_pts, [float(p) for p in true_pts]):
-                        st.success(f"נכון מאוד! האסימפטוטות הן x = {user_asymp}")
-                        show_plot = True
-                    else:
-                        st.error("אלו לא האסימפטוטות. רמז: אלו אותם ערכים שמאפסים את המכנה!")
-                        if st.button("התייאשתי, הצג הסבר וסרטט"):
-                            st.info(f"האסימפטוטות האנכיות הן: x = {true_pts_str}")
-                            st.session_state['force_plot'] = True
-                            st.rerun()
-                except: st.warning("נא להזין מספרים מופרדים בפסיק.")
+                    if np.isclose(float(user_asymp_h), float(horiz_val)):
+                        st.success(f"מעולה! y = {horiz_val}")
+                        step_3_passed = True
+                    else: st.error("לא בדיוק. בדוק את יחס המקדמים של החזקה הכי גבוהה.")
+                except: pass
+            
+            if st.button("התייאשתי, הצג אסימפטוטה אופקית"):
+                st.info(f"האסימפטוטה האופקית היא y = {horiz_val}")
+                step_3_passed = True
+                st.session_state['h_asymp_done'] = True
 
-            if st.session_state.get('force_plot'):
-                show_plot = True
+        # --- הגרף האינטראקטיבי המצטבר ---
+        if step_2_passed or st.session_state.get('v_asymp_done'):
+            st.subheader("מפת הדרכים של הפונקציה (הגרף שלך)")
+            fig = go.Figure()
 
-            # מערכת צירים עם אסימפטוטות בלבד (הגרף הכחול הורד)
-            if show_plot:
-                st.subheader("מיקום האסימפטוטות על הצירים:")
-                fig = go.Figure()
-                for pt in true_pts:
-                    fig.add_vline(x=float(pt), line_dash="dash", line_color="red", 
-                                  annotation_text=f"x={pt}", annotation_position="top")
-                
-                fig.update_layout(xaxis=dict(range=[-10, 10]), yaxis=dict(range=[-10, 10]),
-                                  xaxis_title="x", yaxis_title="y")
-                st.plotly_chart(fig)
-                
-                st.info("אלו ה'קירות' שמגבילים את הפונקציה. עכשיו בוא נראה מה קורה לשיפוע שלה.")
+            # הדגשת צירים (x ו-y)
+            fig.update_xaxes(showline=True, linewidth=3, linecolor='black', mirror=True, zeroline=True, zerolinewidth=2, zerolinecolor='black')
+            fig.update_yaxes(showline=True, linewidth=3, linecolor='black', mirror=True, zeroline=True, zerolinewidth=2, zerolinecolor='black')
 
-                st.markdown("---")
-                st.subheader("השלב הבא: גזירה")
-                if st.checkbox("בדוק את הנגזרת שחישבת במחברת"):
-                    st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
-
-    except Exception as e:
-        st.error("הביטוי המתמטי לא תקין.")
-
-if st.sidebar.button("התחל חקירה חדשה"):
-    st.session_state.clear()
-    st.rerun()
+            # אסימפטוטות אנכיות (אדום)
+            for pt in true_
