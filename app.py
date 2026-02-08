@@ -95,57 +95,7 @@ if input_func:
             user_asymp = st.text_input("1. מהן משוואות האסימפטוטות האנכיות? (למשל: 3, 1-):", key="asymp_input")
             user_horiz = st.text_input("2. מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
             
-            # --- כפתורי ההסבר החדשים ---
+            # --- כפתורי ההסבר המורחבים ---
             col1, col2 = st.columns(2)
             with col1:
-                with st.expander("❓ איך מוצאים אנכית?"):
-                    st.write("אלו ערכי ה-x שמאפסים את המכנה (אלו שמצאת בשלב הקודם!), בתנאי שהם לא מאפסים את המונה.")
-            with col2:
-                with st.expander("❓ איך מוצאים אופקית?"):
-                    st.write("משווים את החזקה הגבוהה במונה לחזקה הגבוהה במכנה. אם החזקות שוות, האסימפטוטה היא יחס המקדמים.")
-            
-            show_plot = False
-            if user_asymp and user_horiz:
-                true_horiz = sp.limit(f, x, sp.oo)
-                try:
-                    user_asy_pts = sorted([float(p.strip()) for p in user_asymp.split(",")])
-                    correct_v = np.allclose(user_asy_pts, [float(p) for p in true_pts])
-                    correct_h = np.isclose(float(user_horiz), float(true_horiz))
-                    
-                    if correct_v and correct_h:
-                        st.success("מעולה! מצאת את כל האסימפטוטות.")
-                        show_plot = True
-                    else:
-                        if not correct_v: st.error("יש טעות באסימפטוטות האנכיות.")
-                        if not correct_h: st.error("יש טעות באסימפטוטה האופקית.")
-                except: pass
-
-            if st.button("הצג פתרון וסרטט"):
-                show_plot = True
-
-            if show_plot:
-                st.subheader("מיקום האסימפטוטות על הצירים:")
-                fig = go.Figure()
-                # אנכיות (אדום)
-                for pt in true_pts:
-                    fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
-                # אופקית (כחול)
-                h_val = float(sp.limit(f, x, sp.oo))
-                fig.add_hline(y=h_val, line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_val)}")
-                
-                fig.update_xaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
-                fig.update_yaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
-                fig.update_layout(plot_bgcolor='white', height=500)
-                st.plotly_chart(fig)
-
-                st.markdown("---")
-                st.subheader("השלב הבא: גזירה")
-                if st.checkbox("בדוק את הנגזרת שחישבת"):
-                    st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
-
-    except Exception as e:
-        st.error("הביטוי המתמטי לא תקין.")
-
-if st.sidebar.button("התחל חקירה חדשה"):
-    st.session_state.clear()
-    st.rerun()
+                with
