@@ -58,7 +58,7 @@ if input_func:
                     st.success("כל הכבוד! אלו בדיוק הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
-                    st.info("נראה שזו לא התשובה הנכונה. אני ממליץ לך להסתכל ברמזים למטה ולנסות שוב.")
+                    st.info("נראה שזו לא התשובה הנכונה. אני ממליץ לך להסתכל ברמזים למטה ולנסות שוב. אם תרצה, תוכל גם ללחוץ על 'התייאשתי' כדי לראות את הדרך.")
                     
                     if st.checkbox("צריך רמז ראשון?"):
                         st.write("עליך לפתור את המשוואה:")
@@ -84,21 +84,22 @@ if input_func:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
-            # אסימפטוטות אנכיות
             st.subheader("1. אסימפטוטות אנכיות")
             with st.expander("💡 רמז מפורט: אסימפטוטה אנכית"):
                 st.write("אלו ערכי ה-x שמצאת בשלב 1 שמאפסים את המכנה.")
                 st.info(f"הערכים הם: {true_pts_str}")
             user_asymp = st.text_input("משוואות האסימפטוטות האנכיות (למשל: x=1, x=-3):", key="asymp_input")
             
-            # אסימפטוטה אופקית
             st.subheader("2. אסימפטוטה אופקית")
             with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אופקית?"):
                 st.write("אנו בודקים את 'מלחמת הכוחות' בין המונה למכנה (החזקה הגבוהה ביותר):")
                 st.markdown("""
-                1. **חזקה גבוהה במכנה:** האסימפטוטה היא $y=0$. לדוגמה: $\\frac{x}{x^2+1}$.
-                2. **חזקות שוות:** מחלקים מקדמים. לדוגמה: $\\frac{6x^2}{2x^2+1} \implies y=3$.
-                3. **חזקה גבוהה במונה:** אין אסימפטוטה אופקית. לדוגמה: $\\frac{x^3}{x^2+1}$.
+                1. **החזקה הגבוהה במכנה:** האסימפטוטה היא $y = 0$.
+                   * **דוגמה:** $f(x) = \\frac{2x+1}{x^2-4} \implies y = 0$
+                2. **החזקות שוות:** מחלקים את המקדמים של החזקות הגבוהות.
+                   * **דוגמה:** $f(x) = \\frac{6x^2+1}{2x^2-3} \implies y = \\frac{6}{2} = 3$
+                3. **החזקה הגבוהה במונה:** אין אסימפטוטה אופקית.
+                   * **דוגמה:** $f(x) = \\frac{x^3}{x^2+1} \implies \text{אין}$
                 """)
             user_horiz = st.text_input("משוואת האסימפטוטה האופקית (y = ?):", key="horiz_input")
             
@@ -111,55 +112,71 @@ if input_func:
             st.markdown("---")
             st.header("שלב 3: נקודות חיתוך עם הצירים")
             
-            # חיתוך עם ציר x
+            # חיתוך עם x
             st.subheader("1. חיתוך עם ציר x")
             with st.expander("💡 רמז: חיתוך עם ציר x"):
-                st.write("זה קורה כש- $y=0$. בשבר, זה אומר שה**מונה** שווה לאפס.")
-                st.write("**דוגמה:** בפונקציה $\\frac{x-5}{x+2}$, המונה מתאפס ב- $x=5$, לכן הנקודה היא $(5,0)$.")
-            user_x_int = st.text_input("הזן נקודות חיתוך עם ציר x בפורמט (x,y):", key="x_int_input")
+                st.write("זה קורה כש- $y=0$. בשבר, זה קורה כשה**מונה** שווה לאפס.")
+                st.write("**דוגמה:** ב- $\\frac{x-5}{x+2}$, המונה מתאפס ב- $x=5$, לכן הנקודה היא $(5,0)$.")
+            user_x_int = st.text_input("הזן נקודות חיתוך עם ציר x (פורמט: (x,y)):", key="x_int_input")
             
-            # חיתוך עם ציר y
+            # חיתוך עם y
             st.subheader("2. חיתוך עם ציר y")
             with st.expander("💡 רמז: חיתוך עם ציר y"):
-                st.write("זה קורה כש- $x=0$. פשוט מציבים 0 במקום כל x.")
-                st.write("**דוגמה:** ב- $\\frac{x+6}{x-2}$, נציב $x=0$ ונקבל $\\frac{6}{-2}=-3$, לכן הנקודה היא $(0,-3)$.")
-            user_y_int = st.text_input("הזן נקודת חיתוך עם ציר y בפורמט (x,y):", key="y_int_input")
+                st.write("זה קורה כש- $x=0$. מציבים 0 בכל מקום שיש x.")
+                st.write("**דוגמה:** ב- $\\frac{x+6}{x-2}$, נציב 0 ונקבל $\\frac{6}{-2}=-3$, לכן הנקודה היא $(0,-3)$.")
+            user_y_int = st.text_input("הזן נקודת חיתוך עם ציר y (פורמט: (x,y)):", key="y_int_input")
 
-            # חישוב תשובות נכונות
+            # חישוב לוגי
             x_roots = [r for r in sp.solve(num, x) if r not in true_domain]
             true_x_points = sorted([(float(r.evalf()), 0.0) for r in x_roots])
-            
             try:
-                if 0 in true_domain: true_y_point = []
-                else: true_y_point = [(0.0, float(f.subs(x, 0).evalf()))]
+                true_y_point = [(0.0, float(f.subs(x, 0).evalf()))] if 0 not in true_domain else []
             except: true_y_point = []
 
+            show_plot = False
             if user_x_int and user_y_int:
                 u_x = extract_points(user_x_int)
                 u_y = extract_points(user_y_int)
-                
                 correct_x = (len(u_x) == len(true_x_points)) and all(np.allclose(u_x[i], true_x_points[i]) for i in range(len(u_x)))
                 correct_y = (len(u_y) == len(true_y_point)) and all(np.allclose(u_y[i], true_y_point[i]) for i in range(len(u_y)))
-
+                
                 if correct_x and correct_y:
                     st.success("מצוין! מצאת את נקודות החיתוך.")
+                    show_plot = True
                 else:
                     st.info("לא זאת לא התשובה הנכונה, אני ממליץ לך לקרוא את הרמז ולנסות שוב ואם אינך רוצה לנסות שוב לחץ על הצג פיתרון ושרטט")
 
             if st.button("הצג פיתרון ושרטט"):
-                st.write(f"חיתוך x: {[(format_num(p[0]), 0) for p in true_x_points] if true_x_points else 'אין'}")
-                st.write(f"חיתוך y: {[(0, format_num(p[1])) for p in true_y_point] if true_y_point else 'אין'}")
-                
+                show_plot = True
+
+            if show_plot:
                 fig = go.Figure()
-                # שרטוט האסימפטוטות משלב קודם
-                for pt in true_pts: fig.add_vline(x=float(pt), line_dash="dash", line_color="red")
-                # הוספת נקודות חיתוך
-                for p in true_x_points: fig.add_trace(go.Scatter(x=[p[0]], y=[0], mode='markers', marker=dict(color='green', size=12), name="חיתוך x"))
-                for p in true_y_point: fig.add_trace(go.Scatter(x=[0], y=[p[1]], mode='markers', marker=dict(color='orange', size=12), name="חיתוך y"))
+                # האסימפטוטות האנכיות מהקוד המקורי שלך
+                for pt in true_pts:
+                    fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
                 
-                fig.update_xaxes(zeroline=True, zerolinewidth=2, range=[-10, 10])
-                fig.update_yaxes(zeroline=True, zerolinewidth=2, range=[-10, 10])
+                # אסימפטוטה אופקית
+                h_val = sp.limit(f, x, sp.oo)
+                if h_val.is_finite:
+                    fig.add_hline(y=float(h_val), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_val)}")
+
+                # הוספת נקודות החיתוך לגרף
+                for p in true_x_points:
+                    fig.add_trace(go.Scatter(x=[p[0]], y=[0], mode='markers+text', text=[f"({format_num(p[0])},0)"], textposition="bottom center", marker=dict(color='green', size=12), name="חיתוך x"))
+                for p in true_y_point:
+                    fig.add_trace(go.Scatter(x=[0], y=[p[1]], mode='markers+text', text=[f"(0,{format_num(p[1])})"], textposition="middle right", marker=dict(color='orange', size=12), name="חיתוך y"))
+
+                # העיצוב המקורי שלך (צירים שחורים עבים ורקע לבן)
+                fig.update_xaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
+                fig.update_yaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
+                fig.update_layout(plot_bgcolor='white', height=500, showlegend=False)
                 st.plotly_chart(fig)
+                
+                # בדיקת נגזרת בסוף כפי שהיה בקוד שלך
+                st.markdown("---")
+                st.subheader("השלב הבא: גזירה")
+                if st.checkbox("בדוק את הנגזרת שחישבת"):
+                    st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
 
     except Exception as e:
         st.error("הביטוי המתמטי לא תקין.")
