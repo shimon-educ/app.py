@@ -95,23 +95,28 @@ if input_func:
             with st.expander("💡 רמז: איך מוצאים אסימפטוטה אנכית?"):
                 st.write("אסימפטוטה אנכית מתרחשת בערכי x שמאפסים את המכנה (אבל לא את המונה).")
                 st.write(f"הערכים שמצאת בשלב 1 הם: **{true_pts_str}**")
-                st.write("המשוואה נראית כך: **מספר = x**.")
+                st.write("המשוואה נראית כך: **x = מספר**.")
 
             user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (x = ?):", key="asymp_input")
             
             # --- אסימפטוטה אופקית ---
             st.subheader("2. אסימפטוטה אופקית")
-            with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אופקית?"):
-                st.write("כדי למצוא אסימפטוטה אופקית, עלינו להשוות את **החזקה הגבוהה ביותר** במונה לזו שבמכנה:")
-                st.info("""
-                * **המכנה 'חזק' יותר (חזקה גבוהה יותר במכנה):** הפונקציה שואפת ל-0. 
-                    **המשוואה:** $y = 0$
-                * **החזקות שוות (אותה חזקה במונה ובמכנה):** מחלקים את המקדם של החזקה הגבוהה במונה במקדם של המכנה.
-                    **המשוואה:** $y = \\frac{a}{b}$
-                * **המונה 'חזק' יותר (חזקה גבוהה יותר במונה):** הפונקציה גדלה לאינסוף.
-                    **התוצאה:** אין אסימפטוטה אופקית.
-                """)
-                st.write("המשוואה תמיד תתחיל ב- **y =**.")
+            with st.expander("💡 רמז מפורט עם דוגמאות:"):
+                st.write("משווים את החזקה הגבוהה ביותר במונה לעומת המכנה:")
+                
+                st.markdown("**1. המכנה 'חזק' יותר (חזקה גבוהה למטה):**")
+                st.write("האסימפטוטה היא תמיד $y = 0$.")
+                st.latex(r"f(x) = \frac{2x+5}{x^2-1} \implies y=0")
+                
+                st.markdown("**2. החזקות שוות במונה ובמכנה:**")
+                st.write("מחלקים את המקדמים של החזקות הגבוהות.")
+                st.latex(r"f(x) = \frac{\mathbf{3}x^2+1}{\mathbf{1}x^2-4} \implies y = \frac{3}{1} = 3")
+                
+                st.markdown("**3. המונה 'חזק' יותר (חזקה גבוהה למעלה):**")
+                st.write("אין אסימפטוטה אופקית.")
+                st.latex(r"f(x) = \frac{x^3}{x^2+1} \implies \text{None}")
+                
+                st.write("התשובה צריכה להיכתב כ: **y = מספר** (או 'אין').")
 
             user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
             
