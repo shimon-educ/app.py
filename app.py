@@ -31,21 +31,15 @@ if input_func:
         true_pts = sorted([format_num(p.evalf()) for p in true_domain])
         true_pts_str = ", ".join([str(p) for p in true_pts])
         
-        # --- שלב 1: תחום הגדרה (ללא שינוי) ---
+        # --- שלב 1: תחום הגדרה ---
         st.header("שלב 1: תחום הגדרה")
         st.latex(r"f(x) = " + sp.latex(f))
 
         with st.expander("🤔 איך מוצאים תחום הגדרה? (הסבר תיאורטי)"):
             st.write("""
             **מה זה בכלל תחום הגדרה?**
-            במתמטיקה, יש פעולה אחת שאסור לעשות: **חלוקה באפס**. 
-            כשיש לנו פונקציה עם שבר (פונקציה רציונלית), עלינו לוודא שהמכנה אף פעם לא יהיה אפס.
-            
-            **איך מוצאים אותו?**
-            1. לוקחים רק את המכנה של הפונקציה.
-            2. משווים אותו לאפס: $המכנה = 0$.
-            3. פותרים את המשוואה שנוצרה.
-            4. הערכים שקיבלנו הם הערכים ש"אסור" להציב בפונקציה.
+            במתמטיקה, אסור לחלק באפס. לכן עלינו למצוא אילו ערכי x מאפסים את המכנה ולהוציא אותם מהתחום.
+            **השלבים:** משווים את המכנה לאפס ($המכנה = 0$) ופתורים.
             """)
         
         user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
@@ -60,31 +54,45 @@ if input_func:
                 else:
                     st.error("לא בדיוק... הערכים האלו לא מאפסים את המכנה.")
                     if st.checkbox("צריך רמז ראשון?"):
+                        st.write("עליך לפתור את המשוואה:")
                         st.latex(sp.latex(den) + "= 0")
                     if st.checkbox("צריך עזרה בפירוק המכנה?"):
+                        st.write("אפשר לכתוב את המכנה כך:")
                         st.latex(sp.latex(sp.factor(den)) + "= 0")
-                    if st.button("התייאשתי, הצג פתרון והמשך"):
-                        st.session_state['force_step_2'] = True
-                        st.rerun()
             except:
                 st.warning("נא להזין מספרים מופרדים בפסיק.")
+
+        # כפתור התייאשתי בשלב 1 - מציג נוסחת שורשים
+        if not step_1_passed and not st.session_state.get('force_step_2'):
+            if st.button("התייאשתי, הצג פתרון והמשך"):
+                st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
+                try:
+                    poly = sp.Poly(den, x)
+                    coeffs = poly.all_coeffs()
+                    if len(coeffs) == 3:
+                        a, b, c = [format_num(val) for val in coeffs]
+                        st.write(f"המקדמים הם: $a={a}, b={b}, c={c}$")
+                        st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
+                        delta = b**2 - 4*a*c
+                        st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \cdot {a} \cdot {c}}}}}{{2 \cdot {a}}}")
+                        st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{delta}}}}}{{{2*a}}}")
+                except: pass
+                st.success(f"הערכים המאפסים הם: {true_pts_str}")
+                st.session_state['force_step_2'] = True
+                st.rerun()
 
         if st.session_state.get('force_step_2'):
             step_1_passed = True
 
-        # --- שלב 2: אסימפטוטות אנכיות (החדש!) ---
+        # --- שלב 2: אסימפטוטות אנכיות ---
         if step_1_passed:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות אנכיות")
             
             with st.expander("🤔 מהן אסימפטוטות אנכיות? (הסבר תיאורטי)"):
                 st.write("""
-                **הקשר בין תחום הגדרה לאסימפטוטה:**
-                אסימפטוטה אנכית היא קו ישר שהפונקציה שואפת אליו (מתקרבת אליו מאוד) אך לא נוגעת בו.
-                בפונקציות רציונליות, הערכים שמאפסים את המכנה (נקודות אי-ההגדרה) הם בדרך כלל המקומות שבהם תהיה אסימפטוטה אנכית.
-                
-                **למה זה קורה?**
-                כשמתקרבים לערך שמאפס את המכנה, השבר הופך למספר עצום (חיובי או שלילי), ולכן הגרף "בורח" למעלה או למטה לאורך הקו האנכי.
+                אסימפטוטה אנכית היא קו ישר שהפונקציה שואפת אליו אך לא נוגעת בו.
+                בפונקציות רציונליות, **נקודות אי-ההגדרה** (אלו שמאפסות את המכנה) הן בדרך כלל האסימפטוטות האנכיות.
                 """)
 
             st.write("על סמך תחום הגדרה שמצאת, מהן משוואות האסימפטוטות האנכיות?")
@@ -98,37 +106,31 @@ if input_func:
                         st.success(f"נכון מאוד! האסימפטוטות הן x = {user_asymptotes}")
                         show_plot = True
                     else:
-                        st.error("אלו לא האסימפטוטות הנכונות. זכור: אלו הערכים שמאפסים את המכנה!")
-                        if st.button("התייאשתי, הצג הסבר וסרטט"):
-                            st.info(f"האסימפטוטות האנכיות הן בנקודות שבהן הפונקציה לא מוגדרת: x = {true_pts_str}")
-                            st.session_state['force_plot'] = True
-                            st.rerun()
+                        st.error("אלו לא האסימפטוטות הנכונות. רמז: הסתכל על תוצאות שלב 1.")
                 except:
                     st.warning("נא להזין מספרים מופרדים בפסיק.")
+
+            # כפתור התייאשתי בשלב 2
+            if not show_plot and not st.session_state.get('force_plot'):
+                if st.button("התייאשתי, הסבר לי וסרטט"):
+                    st.info(f"מכיוון שהפונקציה לא מוגדרת ב-x={true_pts_str}, אלו הן האסימפטוטות האנכיות.")
+                    st.session_state['force_plot'] = True
+                    st.rerun()
 
             if st.session_state.get('force_plot'):
                 show_plot = True
 
-            # סימון על מערכת הצירים (ללא הגרף של הפונקציה!)
+            # מערכת צירים עם אסימפטוטות בלבד
             if show_plot:
-                st.subheader("מערכת הצירים שלך:")
                 fig = go.Figure()
-                
-                # מוסיפים רק את האסימפטוטות כקווים אדומים מקווקווים
                 for pt in true_pts:
                     fig.add_vline(x=float(pt), line_dash="dash", line_color="red", 
                                   annotation_text=f"x={pt}", annotation_position="top")
                 
-                # הגדרות צירים
                 fig.update_layout(xaxis=dict(range=[-10, 10]), yaxis=dict(range=[-10, 10]),
-                                  xaxis_title="x", yaxis_title="y",
-                                  title="מיקום האסימפטוטות על הצירים")
+                                  xaxis_title="x", yaxis_title="y", title="מיקום האסימפטוטות")
                 st.plotly_chart(fig)
-                
-                st.info("מעולה! עכשיו שיש לנו את ה'קירות' (האסימפטוטות), נוכל להמשיך לחקור את התנהגות הפונקציה ביניהם.")
-                
-                if st.checkbox("עבור לשלב הבא: חקירת נגזרת"):
-                    st.write("בקרוב...")
+                st.info("אלו ה'קירות' של הפונקציה. הגרף יתקרב אליהם אך לא יחצה אותם.")
 
     except Exception as e:
         st.error("הביטוי המתמטי לא תקין.")
