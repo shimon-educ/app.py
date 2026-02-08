@@ -85,11 +85,4 @@ if input_func:
         if st.session_state.get('force_step_2'):
             show_step_2 = True
 
-        # --- שלב 2: אסימפטוטות אנכיות ---
-        if show_step_2:
-            st.markdown("---")
-            st.header("שלב 2: אסימפטוטות אנכיות")
-            
-            with st.expander("🤔 מהן אסימפטוטות אנכיות? (הסבר תיאורטי)"):
-                st.write("""
-                אסימפטוטה אנכית היא קו ישר שהגרף מתקרב אליו מאוד אבל לא נוגע בו.
+        # --- שלב 2: אסי
