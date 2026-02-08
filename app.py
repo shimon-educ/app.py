@@ -45,7 +45,6 @@ if input_func:
         user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
         
         show_step_2 = False
-        
         if user_domain:
             try:
                 user_pts = sorted([float(p.strip()) for p in user_domain.split(",")])
@@ -53,32 +52,7 @@ if input_func:
                     st.success("כל הכבוד! אלו בדיוק הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
-                    st.info("נראה שזו לא התשובה הנכונה. אני ממליץ לך להסתכל ברמזים למטה ולנסות שוב. אם תרצה, תוכל גם ללחוץ על 'התייאשתי' כדי לראות את הדרך.")
-                    
-                    if st.checkbox("צריך רמז ראשון?"):
-                        st.write("עליך לפתור את המשוואה:")
-                        st.latex(sp.latex(den) + "= 0")
-                        
-                    if st.checkbox("צריך עזרה בפירוק המכנה?"):
-                        st.write("אפשר לכתוב את המכנה כך:")
-                        st.latex(sp.latex(sp.factor(den)) + "= 0")
-
-                    if st.button("התייאשתי, הצג פתרון והמשך"):
-                        st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
-                        try:
-                            p = sp.Poly(den, x)
-                            coeffs = p.all_coeffs()
-                            if len(coeffs) == 3:
-                                a, b, c = [format_num(v) for v in coeffs]
-                                st.write(f"המקדמים הם: $a={a}, b={b}, c={c}$")
-                                st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
-                                delta = b**2 - 4*a*c
-                                st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \\cdot {a} \\cdot {c}}}}}{{2 \\cdot {a}}}")
-                                st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{delta}}}}}{{{2*a}}}")
-                        except: pass
-                        st.success(f"הערכים המאפסים הם: {true_pts_str}")
-                        st.session_state['force_step_2'] = True
-                        st.rerun()
+                    st.info("נראה שזו לא התשובה הנכונה. אני ממליץ לך להסתכל ברמזים למטה ולנסות שוב.")
             except:
                 st.warning("נא להזין מספרים מופרדים בפסיק.")
 
@@ -86,83 +60,69 @@ if input_func:
             show_step_2 = True
 
         # --- שלב 2: אסימפטוטות ---
+        show_step_3 = False
         if show_step_2:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
-            # --- אסימפטוטות אנכיות ---
             st.subheader("1. אסימפטוטות אנכיות")
-            with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אנכית?"):
-                st.write("אסימפטוטה אנכית היא 'קיר' שהפונקציה לא יכולה לעבור. היא נמצאת בערכי ה-x שגורמים למכנה להיות אפס.")
-                st.markdown("**איך מוצאים?**")
-                st.write("לוקחים את הערכים שמאפסים את המכנה (אלו שמצאת בשלב 1).")
-                st.info(f"הערכים שמצאת הם: **{true_pts_str}**")
-                st.markdown("**דוגמה:**")
-                st.latex(r"f(x) = \frac{5}{x^2-4} \implies x=2, x=-2")
-                st.write("התשובה צריכה להיכתב כ: **x = מספר**.")
-
-            user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (x = ?):", key="asymp_input")
+            user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (למשל: 1, 3-):", key="asymp_input")
             
-            # --- אסימפטוטה אופקית ---
             st.subheader("2. אסימפטוטה אופקית")
             with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אופקית?"):
                 st.write("אנו בודקים את 'מלחמת הכוחות' בין המונה למכנה (החזקה הגבוהה ביותר):")
                 st.markdown("""
-                1. **החזקה הגבוהה ביותר נמצאת במכנה (למטה):**
-                   * הפונקציה שואפת לאפס.
-                   * **דוגמה:** $f(x) = \\frac{2x+1}{x^2-4} \implies y = 0$
-                   
-                2. **החזקות הגבוהות ביותר שוות במונה ובמכנה:**
-                   * מחלקים את המקדמים של החזקות הגבוהות.
-                   * **דוגמה:** $f(x) = \\frac{6x^2+1}{2x^2-3} \implies y = \\frac{6}{2} = 3$
-                   
-                3. **החזקה הגבוהה ביותר נמצאת במונה (למעלה):**
-                   * אין אסימפטוטה אופקית.
-                   * **דוגמה:** $f(x) = \\frac{x^3}{x^2+1} \implies \text{אין}$
+                1. **החזקה הגבוהה ביותר נמצאת במכנה (למטה):** $y = 0$
+                2. **החזקות הגבוהות ביותר שוות:** מחלקים את המקדמים.
+                3. **החזקה הגבוהה ביותר נמצאת במונה (למעלה):** אין אסימפטוטה.
                 """)
-                st.write("התשובה צריכה להיכתב כ: **y = מספר** (או 'אין').")
-
             user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
             
-            show_plot = False
             if user_asymp and user_horiz:
-                true_horiz_lim = sp.limit(f, x, sp.oo)
-                try:
-                    clean_asymp = user_asymp.replace('x', '').replace('=', '').strip()
-                    clean_horiz = user_horiz.replace('y', '').replace('=', '').strip()
-                    
-                    user_asy_pts = sorted([float(p.strip()) for p in clean_asymp.split(",")])
-                    correct_v = np.allclose(user_asy_pts, [float(p) for p in true_pts])
-                    
-                    if clean_horiz.lower() == "אין":
-                        correct_h = not true_horiz_lim.is_finite
-                    else:
-                        correct_h = np.isclose(float(clean_horiz), float(true_horiz_lim))
-                    
-                    if correct_v and correct_h:
-                        st.success("מעולה! מצאת את כל האסימפטוטות.")
-                        show_plot = True
-                    else:
-                        st.info("זו לא התשובה הנכונה. אני ממליץ לך לקרוא את הרמז ולנסות שוב, ואם אינך רוצה לנסות שוב – לחץ על 'הצג פתרון וסרטט'.")
-                except:
-                    st.warning("ודא שהזנת מספרים תקינים.")
+                show_step_3 = True
+
+        # --- שלב 3: נקודות חיתוך עם הצירים ---
+        if show_step_3:
+            st.markdown("---")
+            st.header("שלב 3: נקודות חיתוך עם הצירים")
+            
+            st.subheader("1. חיתוך עם ציר x")
+            with st.expander("💡 רמז: חיתוך עם ציר x"):
+                st.write("מציבים $y=0$ (כלומר, מוצאים מתי המונה שווה לאפס).")
+            user_x_int = st.text_input("הזן את ערכי ה-x של נקודות החיתוך (למשל: 0, 4):", key="x_int_input")
+            
+            st.subheader("2. חיתוך עם ציר y")
+            with st.expander("💡 רמז: חיתוך עם ציר y"):
+                st.write("מציבים $x=0$ בפונקציה.")
+            user_y_int = st.text_input("הזן את ערך ה-y של נקודת החיתוך:", key="y_int_input")
 
             if st.button("הצג פתרון וסרטט"):
-                show_plot = True
+                # חישוב פתרונות חיתוך לצורך הצגה
+                x_roots = [r for r in sp.solve(num, x) if r not in true_domain]
+                y_val = f.subs(x, 0) if 0 not in true_domain else None
+                
+                st.write(f"**נקודות חיתוך עם ציר x:** {[(format_num(r), 0) for r in x_roots] if x_roots else 'אין'}")
+                st.write(f"**נקודת חיתוך עם ציר y:** {(0, format_num(y_val)) if y_val is not None else 'אין'}")
 
-            if show_plot:
-                st.subheader("מיקום האסימפטוטות על הצירים:")
+                # סרטוט הגרף האינטראקטיבי
                 fig = go.Figure()
+                
+                # אסימפטוטות
                 for pt in true_pts:
                     fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
-                
                 h_val_lim = sp.limit(f, x, sp.oo)
                 if h_val_lim.is_finite:
                     fig.add_hline(y=float(h_val_lim), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_val_lim)}")
                 
+                # נקודות חיתוך על הגרף
+                for r in x_roots:
+                    fig.add_trace(go.Scatter(x=[float(r)], y=[0], mode='markers', marker=dict(color='green', size=10), name="חיתוך x"))
+                if y_val is not None:
+                    fig.add_trace(go.Scatter(x=[0], y=[float(y_val)], mode='markers', marker=dict(color='orange', size=10), name="חיתוך y"))
+
                 fig.update_xaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
                 fig.update_yaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
-                fig.update_layout(plot_bgcolor='white', height=500)
+                fig.update_layout(plot_bgcolor='white', height=500, showlegend=False)
                 st.plotly_chart(fig)
 
                 st.markdown("---")
