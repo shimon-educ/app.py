@@ -18,11 +18,10 @@ def format_num(n):
     except:
         return n
 
-# פונקציה לחילוץ נקודות בפורמט (x,y) מהקלט של המשתמש
-def extract_user_points(text):
-    # מחפש תבנית של (מספר,מספר)
+# פונקציה לחילוץ נקודות בפורמט (x,y) מקלט טקסטואלי
+def extract_points(text):
     found = re.findall(r'\(\s*(-?\d*\.?\d+)\s*,\s*(-?\d*\.?\d+)\s*\)', text)
-    return sorted([(float(x_val), float(y_val)) for x_val, y_val in found])
+    return sorted([(float(x), float(y)) for x, y in found])
 
 # הזנת פונקציה
 input_func = st.sidebar.text_input("הזן פונקציה לחקירה:", "x**2 / (x**2 + 2*x - 3)")
@@ -47,8 +46,8 @@ if input_func:
         show_step_2 = False
         if user_domain:
             try:
-                user_pts = sorted([float(p.strip()) for p in user_domain.split(",")])
-                if np.allclose(user_pts, [float(p) for p in true_pts]):
+                user_pts_list = sorted([float(p.strip()) for p in user_domain.split(",")])
+                if np.allclose(user_pts_list, [float(p) for p in true_pts]):
                     st.success("כל הכבוד! אלו בדיוק הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
@@ -67,74 +66,79 @@ if input_func:
             user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
             
             if user_asymp and user_horiz:
-                st.success("מצוין! בוא נמשיך לנקודות חיתוך.")
+                # כאן אפשר להוסיף בדיקה לוגית דומה לשלב 1, לצורך הדוגמה נניח שזה מוביל לשלב 3
                 show_step_3 = True
 
-        # --- שלב 3: נקודות חיתוך עם ציר x ---
+        # --- שלב 3: נקודות חיתוך עם הצירים ---
         if show_step_3:
             st.markdown("---")
-            st.header("שלב 3: נקודות חיתוך עם ציר x")
+            st.header("שלב 3: נקודות חיתוך עם הצירים")
             
-            with st.expander("💡 רמז: איך מוצאים חיתוך עם ציר x?"):
-                st.write("כדי למצוא חיתוך עם ציר $x$, עלינו להשוות את הפונקציה לאפס ($y=0$).")
-                st.write("בפונקציית שבר, זה קורה כאשר ה**מונה** שווה לאפס.")
-                st.write("**דוגמה:** עבור הפונקציה $f(x) = \\frac{x-5}{x+2}$:")
-                st.latex(r"x-5 = 0 \implies x=5 \implies (5,0)")
-                st.info("זכור: התשובה צריכה להיות בפורמט של נקודה: **(x,y)**. אם אין חיתוך, כתוב 'אין'.")
+            # --- חיתוך עם ציר X ---
+            st.subheader("1. חיתוך עם ציר x")
+            with st.expander("💡 איך מוצאים חיתוך עם ציר x?"):
+                st.write("בנקודת החיתוך עם ציר $x$, גובה הפונקציה הוא אפס ($y=0$).")
+                st.write("לכן, עלינו להשוות את המונה לאפס: $num(x) = 0$.")
+                st.write("**דוגמה:** עבור $f(x) = \\frac{x-2}{x+1}$, נפתור $x-2=0$ ונקבל $x=2$.")
+                st.info("את התשובה יש לכתוב כנקודה: **(2,0)**. אם יש כמה נקודות, הפרד אותן בפסיק.")
 
-            user_x_input = st.text_input("הזן את נקודות החיתוך עם ציר x (למשל: (2,0) ):", key="x_intercept_input")
+            user_x_int = st.text_input("הזן נקודות חיתוך עם ציר x (בפורמט (x,y)):", key="x_intercept_input")
             
-            # חישוב תשובה נכונה
-            x_roots = sp.solve(num, x)
-            # סינון שורשים שלא בתחום ההגדרה
-            valid_x_roots = [r for r in x_roots if r not in true_domain]
-            true_x_points = sorted([(float(r.evalf()), 0.0) for r in valid_x_roots])
+            # --- חיתוך עם ציר Y ---
+            st.subheader("2. חיתוך עם ציר y")
+            with st.expander("💡 איך מוצאים חיתוך עם ציר y?"):
+                st.write("בנקודת החיתוך עם ציר $y$, ערך ה-$x$ הוא אפס.")
+                st.write("נציב $x=0$ בפונקציה ונחשב את $f(0)$.")
+                st.write("**דוגמה:** עבור $f(x) = \\frac{x+6}{x-2}$, נציב $0$ ונקבל $\\frac{6}{-2} = -3$.")
+                st.info("את התשובה יש לכתוב כנקודה: **(0,-3)**.")
 
-            show_final_plot = False
-            if user_x_input:
+            user_y_int = st.text_input("הזן נקודת חיתוך עם ציר y (בפורמט (x,y)):", key="y_intercept_input")
+
+            # לוגיקת בדיקה לחיתוך x
+            true_x_roots = [r for r in sp.solve(num, x) if r not in true_domain]
+            true_x_points = sorted([(float(r.evalf()), 0.0) for r in true_x_roots])
+            
+            # לוגיקת בדיקה לחיתוך y
+            try:
+                if 0 in true_domain:
+                    true_y_point = [] # אין חיתוך כי x=0 מחוץ לתחום
+                else:
+                    true_y_val = f.subs(x, 0)
+                    true_y_point = [(0.0, float(true_y_val.evalf()))]
+            except: true_y_point = []
+
+            if user_x_int and user_y_int:
                 try:
-                    if user_x_input.lower() == "אין":
-                        is_correct = (len(true_x_points) == 0)
-                    else:
-                        user_points = extract_user_points(user_x_input)
-                        is_correct = (len(user_points) == len(true_x_points)) and \
-                                     all(np.allclose(user_points[i], true_x_points[i]) for i in range(len(user_points)))
+                    u_x_pts = extract_points(user_x_int)
+                    u_y_pts = extract_points(user_y_int)
                     
-                    if is_correct:
-                        st.success("מעולה! מצאת את נקודות החיתוך עם ציר x.")
-                        show_final_plot = True
+                    correct_x = (len(u_x_pts) == len(true_x_points)) and all(np.allclose(u_x_pts[i], true_x_points[i]) for i in range(len(u_x_pts)))
+                    correct_y = (len(u_y_pts) == len(true_y_point)) and all(np.allclose(u_y_pts[i], true_y_point[i]) for i in range(len(u_y_pts)))
+
+                    if correct_x and correct_y:
+                        st.success("מעולה! מצאת את כל נקודות החיתוך.")
                     else:
-                        st.info("לא זאת לא התשובה הנכונה, אני ממליץ לך לקרוא את הרמז ולנסות שוב ואם אינך רוצה לנסות שוב לחץ על הצג פיתרון ושרטט")
+                        st.info("לא זאת לא התשובה הנכונה, אני ממליץ לך לקרוא את הרמז ולנסות שוב ואם אינך רוצה לנסות שוב לחץ על הצג פיתרון ושרטט.")
                 except:
-                    st.warning("נא להקפיד על פורמט הנקודה: (מספר,מספר)")
+                    st.warning("נא להזין נקודות בפורמט תקין: (x,y)")
 
             if st.button("הצג פיתרון ושרטט"):
-                show_final_plot = True
-
-            if show_final_plot:
-                # הצגת התשובה המילולית
-                if not true_x_points:
-                    st.write("אין נקודות חיתוך עם ציר x.")
-                else:
-                    points_str = ", ".join([f"({format_num(p[0])}, 0)" for p in true_x_points])
-                    st.write(f"נקודות החיתוך הן: **{points_str}**")
-
                 # שרטוט הגרף עם הנקודות
                 fig = go.Figure()
-                # הוספת הנקודות לגרף
+                # הוספת נקודות חיתוך x בירוק
                 for p in true_x_points:
-                    fig.add_trace(go.Scatter(
-                        x=[p[0]], y=[0], 
-                        mode='markers+text',
-                        marker=dict(color='green', size=12),
-                        text=[f"({format_num(p[0])},0)"],
-                        textposition="bottom center",
-                        name="חיתוך x"
-                    ))
+                    fig.add_trace(go.Scatter(x=[p[0]], y=[p[1]], mode='markers+text', 
+                                             text=[f"({format_num(p[0])},0)"], textposition="top center",
+                                             marker=dict(color='green', size=10), name="חיתוך x"))
+                # הוספת נקודת חיתוך y בכתום
+                for p in true_y_point:
+                    fig.add_trace(go.Scatter(x=[p[0]], y=[p[1]], mode='markers+text', 
+                                             text=[f"(0,{format_num(p[1])})"], textposition="middle right",
+                                             marker=dict(color='orange', size=10), name="חיתוך y"))
                 
                 fig.update_xaxes(zeroline=True, zerolinewidth=2, range=[-10, 10])
                 fig.update_yaxes(zeroline=True, zerolinewidth=2, range=[-10, 10])
-                fig.update_layout(height=400, showlegend=False)
+                fig.update_layout(height=500, title="נקודות חיתוך על הצירים")
                 st.plotly_chart(fig)
 
     except Exception as e:
