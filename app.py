@@ -3,7 +3,7 @@ import sympy as sp
 import numpy as np
 import plotly.graph_objects as go
 
-# הגדרות עמוד
+# הגדרות עמוד - MathBuddy
 st.set_page_config(page_title="MathBuddy", layout="centered")
 
 st.title("🧪 מעבדת החקירה של שמעון")
@@ -17,7 +17,7 @@ def format_num(n):
     except:
         return n
 
-# הזנת פונקציה
+# הזנת פונקציה בסרגל הצידי
 input_func = st.sidebar.text_input("הזן פונקציה לחקירה:", "x**2 / (x**2 + 2*x - 3)")
 
 if input_func:
@@ -27,7 +27,7 @@ if input_func:
         num, den = sp.fraction(f)
         true_domain = sp.solve(den, x)
         
-        # הכנת פתרונות נקיים
+        # הכנת פתרונות נקיים לתחום הגדרה
         true_pts = sorted([format_num(p.evalf()) for p in true_domain])
         true_pts_str = ", ".join([str(p) for p in true_pts])
         
@@ -35,23 +35,23 @@ if input_func:
         st.header("שלב 1: תחום הגדרה")
         st.latex(r"f(x) = " + sp.latex(f))
         
-        user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
+        user_domain = st.text_input("מהם הערכים שמאפסים את המכנה? (למשל: 5, 2-):", key="domain_input")
         
         show_step_2 = False
         if user_domain:
             try:
                 user_pts = sorted([float(p.strip()) for p in user_domain.split(",")])
+                # בדיקה אם המשתמש צדק (עם טולרנטיות לשגיאות עיגול קטנות)
                 if np.allclose(user_pts, [float(p) for p in true_pts]):
                     st.success("כל הכבוד! אלו הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
-                    st.error("לא בדיוק... נסה שוב או היעזר בפתרון.")
-                    if st.button("התייאשתי, המשך לשלב הבא"):
-                        st.session_state['force_step_2'] = True
-                        st.rerun()
-            except: st.warning("נא להזין מספרים מופרדים בפסיק.")
+                    st.error("לא בדיוק... נסה שוב.")
+            except:
+                st.warning("נא להזין מספרים מופרדים בפסיק.")
 
-        if st.session_state.get('force_step_2'):
+        if st.button("התייאשתי, הצג פתרון והמשך", key="solve_s1"):
+            st.info(f"הערכים המאפסים הם: {true_pts_str}")
             show_step_2 = True
 
         # --- שלב 2: אסימפטוטות אנכיות ---
@@ -59,23 +59,13 @@ if input_func:
         if show_step_2:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות אנכיות")
-            user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (למשל: 3, 1-):", key="asymp_input")
+            user_asymp = st.text_input("מהן האסימפטוטות האנכיות? (למשל: 3, 1-):", key="asymp_input")
             
             if user_asymp:
-                try:
-                    user_asy_pts = sorted([float(p.strip()) for p in user_asymp.split(",")])
-                    if np.allclose(user_asy_pts, [float(p) for p in true_pts]):
-                        st.success(f"נכון מאוד! האסימפטוטות הן x = {user_asymp}")
-                        show_step_3 = True
-                    else:
-                        st.error("אלו לא האסימפטוטות. רמז: אלו הערכים שמאפסים את המכנה.")
-                        if st.button("דלג לשלב האסימפטוטה האופקית"):
-                            st.session_state['force_step_3'] = True
-                            st.rerun()
-                except: pass
-
-        if st.session_state.get('force_step_3'):
-            show_step_3 = True
+                st.success(f"נכון! אלו נקודות אי-הגדרה, לכן x = {user_asymp} הן אסימפטוטות.")
+                show_step_3 = True
+            elif st.button("דלג לשלב הבא", key="skip_s2"):
+                show_step_3 = True
 
         # --- שלב 3: אסימפטוטה אופקית ---
         show_plot = False
@@ -83,36 +73,33 @@ if input_func:
             st.markdown("---")
             st.header("שלב 3: אסימפטוטה אופקית")
             
-            # חישוב אסימפטוטה אופקית (גבול באינסוף)
-            horiz_asymp_val = sp.limit(f, x, sp.oo)
+            # חישוב אופקית (גבול באינסוף)
+            h_asymp = sp.limit(f, x, sp.oo)
             
-            st.write("כעת נבדוק מה קורה לפונקציה כש-x שואף לאינסוף. מהי האסימפטוטה האופקית?")
-            user_horiz = st.text_input("הזן את ערך ה-y (למשל: 1):", key="horiz_input")
+            st.write("מה קורה ל-y כשהפונקציה שואפת לאינסוף?")
+            user_horiz = st.text_input("הזן את משוואת האסימפטוטה האופקית (y=?):", key="horiz_input")
             
             if user_horiz:
                 try:
-                    if float(user_horiz) == float(horiz_asymp_val):
-                        st.success(f"מעולה! האסימפטוטה האופקית היא y = {user_horiz}")
+                    if float(user_horiz) == float(h_asymp):
+                        st.success(f"מצוין! y = {user_horiz}")
                         show_plot = True
                     else:
-                        st.error("רמז: בדוק את היחס בין המקדמים של החזקה הכי גבוהה במונה ובמכנה.")
-                        if st.button("הצג פתרון ושרטט את המערכת"):
-                            st.info(f"האסימפטוטה האופקית היא y = {horiz_asymp_val}")
-                            st.session_state['force_plot'] = True
-                            st.rerun()
+                        st.error("לא מדויק. רמז: בדוק את יחס המקדמים.")
                 except: pass
+            
+            if st.button("הצג אסימפטוטה אופקית ושרטט", key="solve_s3"):
+                st.info(f"האסימפטוטה האופקית היא y = {h_asymp}")
+                show_plot = True
 
-        if st.session_state.get('force_plot'):
-            show_plot = True
-
-        # --- שרטוט מערכת הצירים והאסימפטוטות ---
+        # --- שרטוט המערכת ---
         if show_plot:
-            st.subheader("מערכת הצירים עם האסימפטוטות:")
+            st.subheader("מערכת הצירים עם ה'שלד' של הפונקציה:")
             fig = go.Figure()
             
             # אסימפטוטות אנכיות (אדום)
             for pt in true_pts:
-                fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
+                fig.add_vline(x=float(pt), line_dash="dash", line_color="red")
             
             # אסימפטוטה אופקית (כחול)
             h_val = float(sp.limit(f, x, sp.oo))
@@ -122,19 +109,16 @@ if input_func:
             fig.update_xaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10], gridcolor='lightgray')
             fig.update_yaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10], gridcolor='lightgray')
             
-            fig.update_layout(plot_bgcolor='white', height=500, xaxis_title="x", yaxis_title="y")
+            fig.update_layout(plot_bgcolor='white', height=500)
             st.plotly_chart(fig)
             
-            st.info("קיבלנו את ה'כלוב' שבו הפונקציה כלואה. עכשיו נראה לאן היא מטפסת ולאן היא יורדת.")
-
             st.markdown("---")
-            st.subheader("השלב הבא: נגזרת ונקודות קיצון")
-            if st.checkbox("אני רוצה לבדוק את הנגזרת שחישבתי במחברת"):
+            st.subheader("השלב הבא: נגזרת")
+            if st.checkbox("בדוק את הנגזרת שלך"):
                 st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
 
     except Exception as e:
-        st.error("חל שגיאה בפענוח הפונקציה. וודא שהזנת אותה בפורמט Python (למשל x**2).")
+        st.error(f"שגיאה: {e}")
 
-if st.sidebar.button("התחל חקירה חדשה"):
-    st.session_state.clear()
+if st.sidebar.button("נקה הכל"):
     st.rerun()
