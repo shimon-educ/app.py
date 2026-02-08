@@ -39,11 +39,13 @@ if input_func:
             st.write("""
             **מה זה בכלל תחום הגדרה?**
             במתמטיקה, אסור לחלק באפס. לכן עלינו למצוא אילו ערכי x מאפסים את המכנה ולהוציא אותם מהתחום.
+            **השלבים:** משווים את המכנה לאפס ($המכנה = 0$) ופתורים את המשוואה.
             """)
         
         user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
         
         show_step_2 = False
+        
         if user_domain:
             try:
                 user_pts = sorted([float(p.strip()) for p in user_domain.split(",")])
@@ -51,7 +53,32 @@ if input_func:
                     st.success("כל הכבוד! אלו בדיוק הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
-                    st.info("נראה שזו לא התשובה הנכונה. נסה שוב בעזרת הרמזים.")
+                    st.info("נראה שזו לא התשובה הנכונה. אני ממליץ לך להסתכל ברמזים למטה ולנסות שוב. אם תרצה, תוכל גם ללחוץ על 'התייאשתי' כדי לראות את הדרך.")
+                    
+                    if st.checkbox("צריך רמז ראשון?"):
+                        st.write("עליך לפתור את המשוואה:")
+                        st.latex(sp.latex(den) + "= 0")
+                        
+                    if st.checkbox("צריך עזרה בפירוק המכנה?"):
+                        st.write("אפשר לכתוב את המכנה כך:")
+                        st.latex(sp.latex(sp.factor(den)) + "= 0")
+
+                    if st.button("התייאשתי, הצג פתרון והמשך"):
+                        st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
+                        try:
+                            p = sp.Poly(den, x)
+                            coeffs = p.all_coeffs()
+                            if len(coeffs) == 3:
+                                a, b, c = [format_num(v) for v in coeffs]
+                                st.write(f"המקדמים הם: $a={a}, b={b}, c={c}$")
+                                st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
+                                delta = b**2 - 4*a*c
+                                st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \\cdot {a} \\cdot {c}}}}}{{2 \\cdot {a}}}")
+                                st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{delta}}}}}{{{2*a}}}")
+                        except: pass
+                        st.success(f"הערכים המאפסים הם: {true_pts_str}")
+                        st.session_state['force_step_2'] = True
+                        st.rerun()
             except:
                 st.warning("נא להזין מספרים מופרדים בפסיק.")
 
@@ -59,72 +86,93 @@ if input_func:
             show_step_2 = True
 
         # --- שלב 2: אסימפטוטות ---
-        show_step_3 = False
         if show_step_2:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
+            # --- אסימפטוטות אנכיות ---
             st.subheader("1. אסימפטוטות אנכיות")
-            user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (למשל: 1, 3-):", key="asymp_input")
+            with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אנכית?"):
+                st.write("אסימפטוטה אנכית היא 'קיר' שהפונקציה לא יכולה לעבור. היא נמצאת בערכי ה-x שגורמים למכנה להיות אפס.")
+                st.markdown("**איך מוצאים?**")
+                st.write("לוקחים את הערכים שמאפסים את המכנה (אלו שמצאת בשלב 1).")
+                st.info(f"הערכים שמצאת הם: **{true_pts_str}**")
+                st.markdown("**דוגמה:**")
+                st.latex(r"f(x) = \frac{5}{x^2-4} \implies x=2, x=-2")
+                st.write("התשובה צריכה להיכתב כ: **x = מספר**.")
+
+            user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (x = ?):", key="asymp_input")
             
+            # --- אסימפטוטה אופקית ---
             st.subheader("2. אסימפטוטה אופקית")
-            with st.expander("💡 רמז מפורט: אסימפטוטה אופקית"):
+            with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אופקית?"):
+                st.write("אנו בודקים את 'מלחמת הכוחות' בין המונה למכנה (החזקה הגבוהה ביותר):")
                 st.markdown("""
-                * **חזקה גבוהה במכנה:** $y = 0$. דוגמה: $f(x) = \\frac{2x+1}{x^2-4} \implies y = 0$
-                * **חזקות שוות:** מחלקים מקדמים. דוגמה: $f(x) = \\frac{6x^2+1}{2x^2-3} \implies y = 3$
-                * **חזקה גבוהה במונה:** אין אסימפטוטה. דוגמה: $f(x) = \\frac{x^3}{x^2+1} \implies \text{אין}$
+                1. **החזקה הגבוהה ביותר נמצאת במכנה (למטה):**
+                   * הפונקציה שואפת לאפס.
+                   * **דוגמה:** $f(x) = \\frac{2x+1}{x^2-4} \implies y = 0$
+                   
+                2. **החזקות הגבוהות ביותר שוות במונה ובמכנה:**
+                   * מחלקים את המקדמים של החזקות הגבוהות.
+                   * **דוגמה:** $f(x) = \\frac{6x^2+1}{2x^2-3} \implies y = \\frac{6}{2} = 3$
+                   
+                3. **החזקה הגבוהה ביותר נמצאת במונה (למעלה):**
+                   * אין אסימפטוטה אופקית.
+                   * **דוגמה:** $f(x) = \\frac{x^3}{x^2+1} \implies \text{אין}$
                 """)
+                st.write("התשובה צריכה להיכתב כ: **y = מספר** (או 'אין').")
+
             user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
             
+            show_plot = False
             if user_asymp and user_horiz:
-                # בדיקה לוגית לפני מעבר לשלב 3
+                true_horiz_lim = sp.limit(f, x, sp.oo)
                 try:
-                    true_h = sp.limit(f, x, sp.oo)
-                    u_h = user_horiz.replace('y','').replace('=','').strip()
-                    u_v = sorted([float(p.strip()) for p in user_asymp.replace('x','').replace('=','').split(",")])
+                    clean_asymp = user_asymp.replace('x', '').replace('=', '').strip()
+                    clean_horiz = user_horiz.replace('y', '').replace('=', '').strip()
                     
-                    check_v = np.allclose(u_v, [float(p) for p in true_pts])
-                    check_h = np.isclose(float(u_h), float(true_h)) if u_h.lower() != "אין" else not true_h.is_finite
+                    user_asy_pts = sorted([float(p.strip()) for p in clean_asymp.split(",")])
+                    correct_v = np.allclose(user_asy_pts, [float(p) for p in true_pts])
                     
-                    if check_v and check_h:
-                        st.success("מעולה! בוא נמשיך לנקודות חיתוך.")
-                        show_step_3 = True
+                    if clean_horiz.lower() == "אין":
+                        correct_h = not true_horiz_lim.is_finite
                     else:
-                        st.info("זו לא התשובה הנכונה. נסה שוב או הצג פתרון.")
-                except: pass
-
-        # --- שלב 3: נקודות חיתוך ---
-        if show_step_3:
-            st.markdown("---")
-            st.header("שלב 3: נקודות חיתוך עם הצירים")
-            
-            user_x_int = st.text_input("ערכי x של נקודות החיתוך עם ציר x:", key="x_int_input")
-            user_y_int = st.text_input("ערך y של נקודת החיתוך עם ציר y:", key="y_int_input")
+                        correct_h = np.isclose(float(clean_horiz), float(true_horiz_lim))
+                    
+                    if correct_v and correct_h:
+                        st.success("מעולה! מצאת את כל האסימפטוטות.")
+                        show_plot = True
+                    else:
+                        st.info("זו לא התשובה הנכונה. אני ממליץ לך לקרוא את הרמז ולנסות שוב, ואם אינך רוצה לנסות שוב – לחץ על 'הצג פתרון וסרטט'.")
+                except:
+                    st.warning("ודא שהזנת מספרים תקינים.")
 
             if st.button("הצג פתרון וסרטט"):
-                x_roots = [r for r in sp.solve(num, x) if r not in true_domain]
-                y_val = f.subs(x, 0) if 0 not in true_domain else None
-                
-                st.write(f"**חיתוך x:** {[(format_num(r), 0) for r in x_roots] if x_roots else 'אין'}")
-                st.write(f"**חיתוך y:** {(0, format_num(y_val)) if y_val is not None else 'אין'}")
+                show_plot = True
 
+            if show_plot:
+                st.subheader("מיקום האסימפטוטות על הצירים:")
                 fig = go.Figure()
                 for pt in true_pts:
                     fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
-                h_lim = sp.limit(f, x, sp.oo)
-                if h_lim.is_finite:
-                    fig.add_hline(y=float(h_lim), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_lim)}")
                 
-                # הוספת הנקודות לגרף
-                for r in x_roots:
-                    fig.add_trace(go.Scatter(x=[float(r)], y=[0], mode='markers+text', text=["חיתוך x"], textposition="top center", marker=dict(color='green', size=12)))
-                if y_val is not None:
-                    fig.add_trace(go.Scatter(x=[0], y=[float(y_val)], mode='markers+text', text=["חיתוך y"], textposition="middle right", marker=dict(color='orange', size=12)))
-
+                h_val_lim = sp.limit(f, x, sp.oo)
+                if h_val_lim.is_finite:
+                    fig.add_hline(y=float(h_val_lim), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_val_lim)}")
+                
                 fig.update_xaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
                 fig.update_yaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
-                fig.update_layout(plot_bgcolor='white', height=500, showlegend=False)
+                fig.update_layout(plot_bgcolor='white', height=500)
                 st.plotly_chart(fig)
+
+                st.markdown("---")
+                st.subheader("השלב הבא: גזירה")
+                if st.checkbox("בדוק את הנגזרת שחישבת"):
+                    st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
 
     except Exception as e:
         st.error("הביטוי המתמטי לא תקין.")
+
+if st.sidebar.button("התחל חקירה חדשה"):
+    st.session_state.clear()
+    st.rerun()
