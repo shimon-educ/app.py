@@ -66,7 +66,6 @@ if input_func:
                     if st.button("התייאשתי, הצג פתרון והמשך"):
                         st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
                         try:
-                            # חילוץ מקדמים למשוואה ax^2 + bx + c
                             p = sp.Poly(den, x)
                             coeffs = p.all_coeffs()
                             if len(coeffs) == 3:
@@ -94,7 +93,7 @@ if input_func:
             with st.expander("🤔 מהן אסימפטוטות אנכיות? (הסבר תיאורטי)"):
                 st.write("""
                 אסימפטוטה אנכית היא קו ישר שהגרף מתקרב אליו מאוד אבל לא נוגע בו.
-                בפונקציות כאלו, **נקודות אי-ההגדרה** שמצאנו קודם הן בדרך כלל האסימפטוטות האנכיות.
+                בפונקציות כאלו, **נקודות אי-ההגדרה** שמצאנו קודם הן האסימפטוטות האנכיות.
                 """)
 
             st.write("על סמך מה שמצאנו, מהן משוואות האסימפטוטות האנכיות?")
@@ -118,7 +117,7 @@ if input_func:
             if st.session_state.get('force_plot'):
                 show_plot = True
 
-            # מערכת צירים עם אסימפטוטות בלבד
+            # מערכת צירים עם אסימפטוטות בלבד (הגרף הכחול הורד)
             if show_plot:
                 st.subheader("מיקום האסימפטוטות על הצירים:")
                 fig = go.Figure()
@@ -130,15 +129,7 @@ if input_func:
                                   xaxis_title="x", yaxis_title="y")
                 st.plotly_chart(fig)
                 
-                # כפתור מעבר לגרף המלא
-                if st.checkbox("אני רוצה לראות איך הפונקציה נראית ביניהן (הצג גרף מלא)"):
-                    f_num = sp.lambdify(x, f, "numpy")
-                    x_vals = np.linspace(-10, 10, 1000)
-                    with np.errstate(divide='ignore', invalid='ignore'):
-                        y_vals = f_num(x_vals)
-                    y_vals[np.abs(y_vals) > 20] = np.nan
-                    fig.add_trace(go.Scatter(x=x_vals, y=y_vals, name="f(x)", line=dict(color='#1f77b4', width=2)))
-                    st.plotly_chart(fig)
+                st.info("אלו ה'קירות' שמגבילים את הפונקציה. עכשיו בוא נראה מה קורה לשיפוע שלה.")
 
                 st.markdown("---")
                 st.subheader("השלב הבא: גזירה")
