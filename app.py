@@ -36,9 +36,13 @@ if input_func:
         st.latex(r"f(x) = " + sp.latex(f))
 
         with st.expander("🤔 איך מוצאים תחום הגדרה? (הסבר תיאורטי)"):
-            st.write("בפונקציית שבר, המכנה אסור שיהיה שווה לאפס. לכן נשווה את המכנה ל-0 ונמצא את ה-x-ים ה'אסורים'.")
+            st.write("""
+            **מה זה בכלל תחום הגדרה?**
+            במתמטיקה, אסור לחלק באפס. לכן עלינו למצוא אילו ערכי x מאפסים את המכנה ולהוציא אותם מהתחום.
+            **השלבים:** משווים את המכנה לאפס ($המכנה = 0$) ופתורים את המשוואה.
+            """)
         
-        user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 3, 1-):", key="domain_input")
+        user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
         
         show_step_2 = False
         
@@ -46,81 +50,66 @@ if input_func:
             try:
                 user_pts = sorted([float(p.strip()) for p in user_domain.split(",")])
                 if np.allclose(user_pts, [float(p) for p in true_pts]):
-                    st.success("מעולה! אלו בדיוק הערכים שמאפסים את המכנה.")
+                    st.success("כל הכבוד! אלו בדיוק הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
-                    st.error("לא בדיוק... נסה להיעזר ברמזים למטה.")
+                    st.error("לא בדיוק... הערכים האלו לא מאפסים את המכנה.")
                     
-                    st.markdown("### 💡 עזרה בפתרון המכנה:")
-                    if st.checkbox("צריך רמז (הצגת המשוואה)?"):
-                        st.write("עליך לפתור את המשוואה הבאה:")
+                    if st.checkbox("צריך רמז ראשון?"):
+                        st.write("עליך לפתור את המשוואה:")
                         st.latex(sp.latex(den) + "= 0")
                         
-                    if st.button("התייאשתי, הצג פתרון מלא והמשך"):
-                        st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
-                        try:
-                            p = sp.Poly(den, x)
-                            coeffs = p.all_coeffs()
-                            if len(coeffs) == 3:
-                                a, b, c = [float(v) for v in coeffs]
-                                delta = b**2 - 4*a*c
-                                st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
-                                st.latex(f"x_{{1,2}} = \\frac{{-({format_num(b)}) \\pm \\sqrt{{{format_num(delta)}}}}}{{{2*format_num(a)}}}")
-                                st.write(f"השורשים שמצאנו הם: **{true_pts_str}**")
-                            else:
-                                st.write(f"הפתרונות הם: **{true_pts_str}**")
-                        except:
-                            st.write(f"הערכים הם: **{true_pts_str}**")
-                        
+                    if st.checkbox("צריך עזרה בפירוק המכנה?"):
+                        st.write("אפשר לכתוב את המכנה כך:")
+                        st.latex(sp.latex(sp.factor(den)) + "= 0")
+
+                    if st.button("התייאשתי, הצג פתרון והמשך"):
+                        st.info("מהלך הפתרון:")
+                        st.success(f"הערכים המאפסים הם: {true_pts_str}")
                         st.session_state['force_step_2'] = True
                         st.rerun()
             except:
-                st.warning("נא להזין מספרים מופרדים בפסיק (למשל: 1, -3).")
+                st.warning("נא להזין מספרים מופרדים בפסיק.")
 
-        if st.session_state.get('force_step_2') or show_step_2:
+        if st.session_state.get('force_step_2'):
+            show_step_2 = True
+
+        # --- שלב 2: אסימפטוטות ---
+        if show_step_2:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
-            # קלט מהמשתמש
-            user_as_v = st.text_input("1. מהן האסימפטוטות האנכיות?", key="v_in")
-            user_as_h = st.text_input("2. מהי האסימפטוטה האופקית? (מספר או 'אין')", key="h_in")
+            user_asymp = st.text_input("1. מהן משוואות האסימפטוטות האנכיות?", key="asymp_input")
+            user_horiz = st.text_input("2. מהי משוואת האסימפטוטה האופקית?", key="horiz_input")
             
             col1, col2 = st.columns(2)
             with col1:
                 with st.expander("💡 איך מוצאים אנכית?"):
-                    st.write("אלו הן נקודות אי-ההגדרה שמצאת בשלב 1 (בתנאי שהן לא מאפסות את המונה).")
-                    st.info(f"הנקודות שמצאת: {true_pts_str}")
-                    st.write("🔗 [הסבר על אסימפטוטה אנכית](https://ischool.co.il/math/analisys/rational-functions/vertical-asymptote/)")
+                    st.write("אלו ערכי ה-x שמאפסים את המכנה (הנקודות שמצאת בשלב 1).")
             
             with col2:
                 with st.expander("💡 איך מוצאים אופקית?"):
-                    st.write("נבדוק את החזקה הגבוהה ביותר במונה ($n$) ובמכנה ($m$):")
-                    st.info("""
-                    * **מכנה חזק יותר ($n < m$):** האסימפטוטה היא **y = 0**.
-                    * **חזקות שוות ($n = m$):** האסימפטוטה היא **יחס המקדמים**.
-                    * **מונה חזק יותר ($n > m$):** **אין אסימפטוטה אופקית**.
-                    """)
-                    st.write("🔗 [הסבר על אסימפטוטה אופקית](https://ischool.co.il/math/analisys/rational-functions/horizontal-asymptote/)")
+                    st.write("נשווה את הדרגה (החזקה הכי גבוהה) של המונה לעומת המכנה.")
 
-            if st.button("סרטט אסימפטוטות על הגרף"):
+            if st.button("הצג פתרון וסרטט"):
+                st.subheader("תרשים האסימפטוטות")
                 fig = go.Figure()
-                # סרטוט קווים אנכיים
+                # סרטוט אנכיות
                 for pt in true_pts:
                     fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
+                # סרטוט אופקית
+                true_h_val = sp.limit(f, x, sp.oo)
+                if true_h_val.is_finite:
+                    fig.add_hline(y=float(true_h_val), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(true_h_val)}")
                 
-                # חישוב וסרטוט קו אופקי
-                h_limit = sp.limit(f, x, sp.oo)
-                if h_limit.is_finite:
-                    fig.add_hline(y=float(h_limit), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_limit)}")
-                
-                fig.update_layout(height=450, template="simple_white", title="מיקום האסימפטוטות")
+                fig.update_layout(height=400, template="simple_white")
                 fig.update_xaxes(range=[-10, 10], zeroline=True, zerolinecolor="black")
                 fig.update_yaxes(range=[-10, 10], zeroline=True, zerolinecolor="black")
                 st.plotly_chart(fig)
 
     except Exception as e:
-        st.error("הפונקציה שהוזנה אינה תקינה. השתמש ב-* לכפל וב-** לחזקה.")
+        st.error(f"שגיאה בניתוח הפונקציה.")
 
-if st.sidebar.button("התחל מהתחלה"):
+if st.sidebar.button("נקה הכל"):
     st.session_state.clear()
     st.rerun()
