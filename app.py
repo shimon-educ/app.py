@@ -58,8 +58,28 @@ if input_func:
                         st.latex(sp.latex(sp.factor(den)) + "= 0")
 
                     if st.button("התייאשתי, הצג פתרון והמשך"):
-                        st.info("הערכים המאפסים הם: " + true_pts_str)
+                        # --- תוספת: הצגת מהלך פתרון המשוואה הריבועית ---
+                        st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
+                        
+                        # חילוץ מקדמים למשוואה ax^2 + bx + c
+                        try:
+                            poly = sp.Poly(den, x)
+                            a = format_num(poly.coeff_inst(x, 2)) if poly.degree() >= 2 else 0
+                            b = format_num(poly.coeff_inst(x, 1)) if poly.degree() >= 1 else 0
+                            c = format_num(poly.coeff_inst(x, 0))
+                            
+                            st.write(f"המקדמים הם: $a={a}, b={b}, c={c}$")
+                            st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
+                            
+                            delta = b**2 - 4*a*c
+                            st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \cdot {a} \cdot {c}}}}}{{2 \cdot {a}}}")
+                            st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{delta}}}}}{{{2*a}}}")
+                        except:
+                            st.write("פתרון המשוואה:")
+                            
+                        st.success("הערכים המאפסים הם: " + true_pts_str)
                         st.session_state['force_step_2'] = True
+                        st.rerun() # רענון כדי להציג את הגרף מיד
             except:
                 st.warning("נא להזין מספרים מופרדים בפסיק.")
 
@@ -70,7 +90,7 @@ if input_func:
         if show_step_2:
             st.markdown("---")
             st.header("שלב 2: הצגה גרפית")
-            st.write("נקודות אי-ההגדרה הן האסימפטוטות האנכיות שלנו.")
+            st.write(f"נקודות אי-ההגדרה $x={true_pts_str}$ הן האסימפטוטות האנכיות שלנו.")
             
             f_num = sp.lambdify(x, f, "numpy")
             x_vals = np.linspace(-10, 10, 1000)
