@@ -36,7 +36,7 @@ if input_func:
         f = sp.sympify(clean_func_str)
         num, den = sp.fraction(f)
         
-        # חישוב תחום הגדרה - התיקון שמונע שגיאה בחזקה שלישית
+        # חישוב תחום הגדרה - תיקון לחזקה שלישית (סינון ממשיים)
         true_domain_raw = sp.solve(den, x)
         true_pts = sorted([format_num(sol.evalf()) for sol in true_domain_raw if sol.is_real])
         true_pts_str = ", ".join([str(p) for p in true_pts])
@@ -99,28 +99,40 @@ if input_func:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
+            # --- אסימפטוטות אנכיות (גרסה מורחבת) ---
             st.subheader("1. אסימפטוטות אנכיות")
-            with st.expander("💡 רמז מפורט: אסימפטוטה אנכית"):
-                st.write("הן נמצאות בערכי ה-x שגורמים למכנה להיות אפס.")
+            with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אנכית?"):
+                st.write("""
+                אסימפטוטה אנכית היא סוג של 'קיר' שהפונקציה שואפת אליו אך לעולם לא חוצה. 
+                היא מופיעה בערכי ה-x שמאפסים את המכנה.
+                
+                **איך רושמים את התשובה?**
+                לוקחים את הערכים שמצאת בשלב 1 וכותבים אותם כמשוואת ישר אנכי.
+                """)
                 st.info(f"הערכים שמצאת בשלב הקודם הם: **{true_pts_str}**")
-                st.write("התשובה צריכה להיכתב כ: **x = מספר**.")
+                st.markdown("**דוגמה:**")
+                st.write("אם המכנה מתאפס ב-2 וב-2-, נכתוב את האסימפטוטות כך:")
+                st.latex(r"x=2, x=-2")
 
             user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (x = ?):", key="asymp_input")
             
+            # --- אסימפטוטה אופקית (גרסה מורחבת) ---
             st.subheader("2. אסימפטוטה אופקית")
             with st.expander("💡 רמז מפורט: אסימפטוטה אופקית"):
                 st.markdown("""
+                כאן בודקים את 'מלחמת הכוחות' בין המונה למכנה לפי החזקה הגבוהה ביותר:
+                
                 1. **החזקה הגבוהה ביותר במכנה (למטה):**
-                   * הפונקציה שואפת לאפס.
+                   * המכנה "חזק" יותר והפונקציה נשאבת לאפס.
                    * **דוגמה:** $f(x) = \\frac{2x+1}{x^2-4} \implies y = 0$
                    
                 2. **החזקות הגבוהות ביותר שוות במונה ובמכנה:**
-                   * מחלקים את המקדמים של החזקות הגבוהות.
+                   * יש "תיקו", לכן מחלקים את המקדמים של החזקות הללו.
                    * **דוגמה:** $f(x) = \\frac{6x^2+1}{2x^2-3} \implies y = \\frac{6}{2} = 3$
                    
                 3. **החזקה הגבוהה ביותר במונה (למעלה):**
-                   * אין אסימפטוטה אופקית.
-                   * **דוגמה:** $f(x) = \\frac{x^3}{x^2+1} \implies \text{אין}$
+                   * המונה "חזק" יותר והפונקציה בורחת לאינסוף.
+                   * **דוגמה:** $f(x) = \\frac{x^3}{x^2+1} \implies \text{אין אסימפטוטה אופקית}$
                 """)
                 st.write("התשובה צריכה להיכתב כ: **y = מספר** (או 'אין').")
 
