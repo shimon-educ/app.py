@@ -64,18 +64,7 @@ if input_func:
                         st.latex(sp.latex(sp.factor(den)) + "= 0")
 
                     if st.button("התייאשתי, הצג פתרון והמשך"):
-                        st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
-                        try:
-                            p = sp.Poly(den, x)
-                            coeffs = p.all_coeffs()
-                            if len(coeffs) == 3:
-                                a, b, c = [format_num(v) for v in coeffs]
-                                st.write(f"המקדמים הם: $a={a}, b={b}, c={c}$")
-                                st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
-                                delta = b**2 - 4*a*c
-                                st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \\cdot {a} \\cdot {c}}}}}{{2 \\cdot {a}}}")
-                                st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{delta}}}}}{{{2*a}}}")
-                        except: pass
+                        st.info("מהלך הפתרון:")
                         st.success(f"הערכים המאפסים הם: {true_pts_str}")
                         st.session_state['force_step_2'] = True
                         st.rerun()
@@ -90,12 +79,68 @@ if input_func:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
-            # שאלות הקלט
-            st.subheader("חקירת האסימפטוטות")
             user_asymp = st.text_input("1. מהן משוואות האסימפטוטות האנכיות? (למשל: 3, 1-):", key="asymp_input")
-            user_horiz = st.text_input("2. מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
+            user_horiz = st.text_input("2. מהי משוואת האסימפטוטה האופקית? (למשל: 1 או 'אין'):", key="horiz_input")
             
-            # --- כפתורי ההסבר המורחבים ---
             col1, col2 = st.columns(2)
             with col1:
-                with
+                with st.expander("💡 איך מוצאים אנכית?"):
+                    st.write("אלו ערכי ה-x שמאפסים את המכנה (הנקודות שמצאת בשלב 1), בתנאי שהם לא מאפסים את המונה.")
+            
+            with col2:
+                with st.expander("💡 איך מוצאים אופקית? (הסבר מלא)"):
+                    st.write("נשווה את הדרגה (החזקה הכי גבוהה) של המונה לעומת המכנה:")
+                    st.info("""
+                    * **המכנה 'חזק' יותר:** אם החזקה הגבוהה במכנה גדולה יותר, האסימפטוטה היא **y = 0**.
+                    * **החזקות שוות:** האסימפטוטה היא **יחס המקדמים** של החזקות הגבוהות ביותר.
+                    * **המונה 'חזק' יותר:** אם החזקה במונה גדולה יותר, **אין אסימפטוטה אופקית**.
+                    """)
+                    st.write("🔗 [הסבר ויזואלי ומפורט באתר לומדים מתמטיקה](https://www.m-math.co.il/differential-calculus/function-investigation/horizontal-asymptote/)")
+
+            show_plot = False
+            if user_asymp and user_horiz:
+                try:
+                    true_horiz = sp.limit(f, x, sp.oo)
+                    # בדיקת אנכיות
+                    user_asy_pts = sorted([float(p.strip()) for p in user_asymp.split(",")])
+                    correct_v = np.allclose(user_asy_pts, [float(p) for p in true_pts])
+                    
+                    # בדיקת אופקית
+                    if user_horiz.lower() in ['אין', 'no', 'none']:
+                        correct_h = not true_horiz.is_finite
+                    else:
+                        correct_h = np.isclose(float(user_horiz), float(true_horiz))
+                    
+                    if correct_v and correct_h:
+                        st.success("תשובה נכונה! בוא נראה את זה על הגרף.")
+                        show_plot = True
+                    else:
+                        st.error("חלק מהתשובות אינן נכונות, נסה להיעזר בכפתורי ההסבר.")
+                except:
+                    st.warning("נא להזין ערכים מספריים (עבור 'אין אסימפטוטה' רשום 'אין').")
+
+            if st.button("הצג פתרון וסרטט"):
+                show_plot = True
+
+            if show_plot:
+                st.subheader("תרשים האסימפטוטות")
+                fig = go.Figure()
+                # סרטוט אנכיות
+                for pt in true_pts:
+                    fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
+                # סרטוט אופקית
+                true_h_val = sp.limit(f, x, sp.oo)
+                if true_h_val.is_finite:
+                    fig.add_hline(y=float(true_h_val), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(true_h_val)}")
+                
+                fig.update_layout(height=400, template="simple_white")
+                fig.update_xaxes(range=[-10, 10], zeroline=True, zerolinecolor="black")
+                fig.update_yaxes(range=[-10, 10], zeroline=True, zerolinecolor="black")
+                st.plotly_chart(fig)
+
+    except Exception as e:
+        st.error(f"שגיאה בניתוח הפונקציה. וודא שהזנת ביטוי תקין.")
+
+if st.sidebar.button("נקה הכל"):
+    st.session_state.clear()
+    st.rerun()
