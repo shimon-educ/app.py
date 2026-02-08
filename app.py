@@ -85,4 +85,61 @@ if input_func:
         if st.session_state.get('force_step_2'):
             show_step_2 = True
 
-        # --- שלב 2: אסי
+        # --- שלב 2: אסימפטוטות אנכיות ---
+        if show_step_2:
+            st.markdown("---")
+            st.header("שלב 2: אסימפטוטות אנכיות")
+            
+            with st.expander("🤔 מהן אסימפטוטות אנכיות? (הסבר תיאורטי)"):
+                st.write("""
+                אסימפטוטה אנכית היא קו ישר שהגרף מתקרב אליו מאוד אבל לא נוגע בו.
+                בפונקציות כאלו, **נקודות אי-ההגדרה** שמצאנו קודם הן האסימפטוטות האנכיות.
+                """)
+
+            st.write("על סמך מה שמצאנו, מהן משוואות האסימפטוטות האנכיות?")
+            user_asymp = st.text_input("הזן את ערכי ה-x (למשל: 3, 1-):", key="asymp_input")
+            
+            show_plot = False
+            if user_asymp:
+                try:
+                    user_asy_pts = sorted([float(p.strip()) for p in user_asymp.split(",")])
+                    if np.allclose(user_asy_pts, [float(p) for p in true_pts]):
+                        st.success(f"נכון מאוד! האסימפטוטות הן x = {user_asymp}")
+                        show_plot = True
+                    else:
+                        st.error("אלו לא האסימפטוטות. רמז: אלו אותם ערכים שמאפסים את המכנה!")
+                        if st.button("התייאשתי, הצג הסבר וסרטט"):
+                            st.info(f"האסימפטוטות האנכיות הן: x = {true_pts_str}")
+                            st.session_state['force_plot'] = True
+                            st.rerun()
+                except: st.warning("נא להזין מספרים מופרדים בפסיק.")
+
+            if st.session_state.get('force_plot'):
+                show_plot = True
+
+            # מערכת צירים עם אסימפטוטות
+            if show_plot:
+                st.subheader("מיקום האסימפטוטות על הצירים:")
+                fig = go.Figure()
+                
+                # הוספת אסימפטוטות אנכיות (אדום)
+                for pt in true_pts:
+                    fig.add_vline(x=float(pt), line_dash="dash", line_color="red", 
+                                  annotation_text=f"x={pt}", annotation_position="top")
+                
+                # --- השדרוג למערכת הצירים ---
+                fig.update_xaxes(
+                    zeroline=True, zerolinewidth=4, zerolinecolor='black', # ציר X עבה
+                    showgrid=True, gridcolor='lightgray', range=[-10, 10]
+                )
+                fig.update_yaxes(
+                    zeroline=True, zerolinewidth=4, zerolinecolor='black', # ציר Y עבה
+                    showgrid=True, gridcolor='lightgray', range=[-10, 10]
+                )
+                
+                fig.update_layout(
+                    plot_bgcolor='white',
+                    xaxis_title="x", yaxis_title="y",
+                    height=500
+                )
+                st.plotly_chart(fig)
