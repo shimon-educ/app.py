@@ -80,4 +80,4 @@ if input_func:
             st.header("שלב 2: אסימפטוטות")
             
             user_asymp = st.text_input("1. מהן משוואות האסימפטוטות האנכיות? (למשל: 3, 1-):", key="asymp_input")
-            user_horiz = st.text_input("2. מהי משוואת האסימפטוטה האופקית? (למשל: 1 או 'אין'):", key="horiz_input
+            user_horiz
