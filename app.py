@@ -91,7 +91,15 @@ if input_func:
             st.header("שלב 2: אסימפטוטות")
             
             st.subheader("1. אסימפטוטות אנכיות")
-            # התיקון כאן: שינוי הדוגמה ל-x=?
+            
+            # כפתור רמז מפורט כפי שביקשת
+            with st.expander("💡 רמז: לא יודע איך למצוא אסימפטוטה אנכית?"):
+                st.write("אסימפטוטה אנכית היא קו ישר שהפונקציה מתקרבת אליו מאוד אך לעולם לא נוגעת בו.")
+                st.write("זוכר את הערכים שמאפסים את המכנה שמצאת ב**שלב 1**?")
+                st.info(f"הערכים שמצאת היו: **{true_pts_str}**")
+                st.write("אלו בדיוק הנקודות שבהן נוצרת אסימפטוטה אנכית (אלא אם הן מאפסות גם את המונה).")
+                st.write("המשוואה של קו כזה נראית תמיד כך: **מספר = x**.")
+
             user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (x = ?):", key="asymp_input")
             
             st.subheader("2. אסימפטוטה אופקית")
@@ -101,7 +109,6 @@ if input_func:
             if user_asymp and user_horiz:
                 true_horiz_lim = sp.limit(f, x, sp.oo)
                 try:
-                    # ניקוי הקלט מהתלמיד (הסרת 'x=' או 'y=' אם נכתבו)
                     clean_asymp = user_asymp.replace('x', '').replace('=', '').strip()
                     clean_horiz = user_horiz.replace('y', '').replace('=', '').strip()
                     
@@ -119,11 +126,6 @@ if input_func:
                     else:
                         if not correct_v:
                             st.error("יש טעות באסימפטוטות האנכיות.")
-                            with st.expander("🔍 רמז לאסימפטוטה אנכית"):
-                                st.write("היזכר בערכים שמאפסים את המכנה שמצאת בשלב הקודם:")
-                                st.info(f"הערכים היו: **{true_pts_str}**")
-                                st.write("אלו בדיוק המקומות בהם הגרף ייעצר וייצור קו אנכי מהצורה x=מספר.")
-                        
                         if not correct_h:
                             st.error("יש טעות באסימפטוטה האופקית.")
                             with st.expander("🔍 רמז לאסימפטוטה אופקית"):
