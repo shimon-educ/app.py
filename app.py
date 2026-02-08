@@ -34,6 +34,24 @@ if input_func:
         # שלב 1: תחום הגדרה
         st.header("שלב 1: תחום הגדרה")
         st.latex(r"f(x) = " + sp.latex(f))
+
+        # --- תוספת: הסבר תיאורטי לתלמיד ---
+        with st.expander("🤔 איך מוצאים תחום הגדרה? (הסבר תיאורטי)"):
+            st.write("""
+            **מה זה בכלל תחום הגדרה?**
+            במתמטיקה, יש פעולה אחת שאסור לעשות: **חלוקה באפס**. 
+            כשיש לנו פונקציה עם שבר (פונקציה רציונלית), עלינו לוודא שהמכנה אף פעם לא יהיה אפס.
+            
+            **איך מוצאים אותו?**
+            1. לוקחים רק את המכנה של הפונקציה.
+            2. משווים אותו לאפס: $המכנה = 0$.
+            3. פותרים את המשוואה שנוצרה.
+            4. הערכים שקיבלנו הם הערכים ש"אסור" להציב בפונקציה.
+            
+            **איך כותבים את התשובה?**
+            אם מצאנו ש- $x=3$ מאפס את המכנה, נכתוב שתחום ההגדרה הוא $x \\neq 3$.
+            """)
+        
         st.write("כדי למצוא את תחום ההגדרה, עלינו למצוא אילו ערכי x מאפסים את המכנה.")
         
         user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
@@ -58,27 +76,21 @@ if input_func:
                         st.latex(sp.latex(sp.factor(den)) + "= 0")
 
                     if st.button("התייאשתי, הצג פתרון והמשך"):
-                        # --- תצוגת מהלך הפתרון שביקשת ---
                         st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
                         
                         try:
-                            # חילוץ אוטומטי של המקדמים
-                            poly_den = sp.Poly(den, x)
-                            coeffs = poly_den.all_coeffs()
-                            # התאמה למקרה של משוואה ריבועית (3 מקדמים)
+                            poly = sp.Poly(den, x)
+                            coeffs = poly.all_coeffs()
                             if len(coeffs) == 3:
                                 a, b, c = coeffs
                                 a, b, c = format_num(a), format_num(b), format_num(c)
-                                
                                 st.write(f"המקדמים הם: $a={a}, b={b}, c={c}$")
                                 st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
-                                
-                                # הצבה בנוסחה
-                                discriminant = b**2 - 4*a*c
+                                delta = b**2 - 4*a*c
                                 st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \cdot {a} \cdot {c}}}}}{{2 \cdot {a}}}")
-                                st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{discriminant}}}}}{{{2*a}}}")
+                                st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{delta}}}}}{{{2*a}}}")
                         except:
-                            pass # אם זו לא משוואה ריבועית רגילה, פשוט נראה את התוצאה
+                            pass
                         
                         st.success("הערכים המאפסים הם: " + true_pts_str)
                         st.session_state['force_step_2'] = True
@@ -103,7 +115,6 @@ if input_func:
             
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=x_vals, y=y_vals, name="f(x)", line=dict(color='#1f77b4', width=2)))
-            
             for pt in true_pts:
                 fig.add_vline(x=float(pt), line_dash="dash", line_color="red")
             
