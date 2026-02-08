@@ -53,7 +53,6 @@ if input_func:
                     st.success("כל הכבוד! אלו בדיוק הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
-                    # שינוי ניסוח בשלב 1
                     st.info("נראה שזו לא התשובה הנכונה. אני ממליץ לך להסתכל ברמזים למטה ולנסות שוב. אם תרצה, תוכל גם ללחוץ על 'התייאשתי' כדי לראות את הדרך.")
                     
                     if st.checkbox("צריך רמז ראשון?"):
@@ -87,76 +86,83 @@ if input_func:
             show_step_2 = True
 
         # --- שלב 2: אסימפטוטות ---
+        show_step_3 = False
         if show_step_2:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
-            # --- אסימפטוטות אנכיות ---
             st.subheader("1. אסימפטוטות אנכיות")
             with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אנכית?"):
-                st.write("אסימפטוטה אנכית היא 'קיר' שהפונקציה לא יכולה לעבור. היא נמצאת בערכי ה-x שגורמים למכנה להיות אפס.")
-                st.markdown("**איך מוצאים?**")
-                st.write("לוקחים את הערכים שמאפסים את המכנה (אלו שמצאת בשלב 1).")
-                st.info(f"הערכים שמצאת הם: **{true_pts_str}**")
-                st.markdown("**דוגמה:**")
-                st.latex(r"f(x) = \frac{5}{x^2-4} \implies x=2, x=-2")
-                st.write("התשובה צריכה להיכתב כ: **x = מספר**.")
+                st.write("אלו ה'קירות' של הפונקציה. הן נמצאות בערכי ה-x שמאפסים את המכנה.")
+                st.info(f"הערכים שמצאת בשלב 1 הם: **{true_pts_str}**")
+                st.write("המשוואה צריכה להיראות כך: **x = מספר**.")
 
             user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (x = ?):", key="asymp_input")
             
-            # --- אסימפטוטה אופקית ---
             st.subheader("2. אסימפטוטה אופקית")
-            with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אופקית?"):
-                st.write("משווים את החזקה הגבוהה ביותר במונה לעומת המכנה:")
-                st.info("""
-                * **חזקה גבוהה למטה:** האסימפטוטה היא $y = 0$.
-                * **חזקות שוות:** מחלקים את המקדמים של החזקות הגבוהות.
-                * **חזקה גבוהה למעלה:** אין אסימפטוטה אופקית.
-                """)
-                st.write("התשובה צריכה להיכתב כ: **y = מספר** (או 'אין').")
-
             user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
             
-            show_plot = False
             if user_asymp and user_horiz:
-                true_horiz_lim = sp.limit(f, x, sp.oo)
+                st.success("מצוין! בוא נמשיך לחיתוך עם הצירים.")
+                show_step_3 = True
+
+        # --- שלב 3: חיתוך עם ציר x ---
+        if show_step_3:
+            st.markdown("---")
+            st.header("שלב 3: נקודות חיתוך עם הצירים")
+            st.subheader("חיתוך עם ציר x")
+
+            with st.expander("💡 רמז: איך מוצאים נקודות חיתוך עם ציר x?"):
+                st.write("כדי למצוא איפה הפונקציה חוצה את ציר ה-x, אנחנו צריכים לבדוק מתי ה-y הוא אפס ($f(x)=0$).")
+                st.write("בפונקציית שבר, זה קורה כשה**מונה** שווה לאפס.")
+                st.write("**דוגמה:**")
+                st.latex(r"f(x) = \frac{x-4}{x+2} \implies x-4=0 \implies x=4 \implies (4,0)")
+                st.info("אם אין ערך שמאפס את המונה (או שהערך מחוץ לתחום ההגדרה), כתוב 'אין'.")
+
+            user_x_intercepts = st.text_input("מהן נקודות החיתוך עם ציר x? (רשום את ערכי ה-x בלבד, מופרדים בפסיק):", key="x_intercept_input")
+
+            # חישוב חיתוך x אמיתי לבדיקה
+            x_roots = sp.solve(num, x)
+            # סינון נקודות מחוץ לתחום הגדרה
+            valid_x_roots = [p for p in x_roots if p not in true_domain]
+            true_x_ints = sorted([format_num(p.evalf()) for p in valid_x_roots])
+
+            show_final_step = False
+            if user_x_intercepts:
                 try:
-                    clean_asymp = user_asymp.replace('x', '').replace('=', '').strip()
-                    clean_horiz = user_horiz.replace('y', '').replace('=', '').strip()
-                    
-                    user_asy_pts = sorted([float(p.strip()) for p in clean_asymp.split(",")])
-                    correct_v = np.allclose(user_asy_pts, [float(p) for p in true_pts])
-                    
-                    if clean_horiz.lower() == "אין":
-                        correct_h = not true_horiz_lim.is_finite
+                    if user_x_intercepts.lower() == "אין":
+                        correct_x = (len(true_x_ints) == 0)
                     else:
-                        correct_h = np.isclose(float(clean_horiz), float(true_horiz_lim))
-                    
-                    if correct_v and correct_h:
-                        st.success("מעולה! מצאת את כל האסימפטוטות.")
-                        show_plot = True
+                        user_val_list = sorted([float(p.strip()) for p in user_x_intercepts.split(",")])
+                        correct_x = np.allclose(user_val_list, [float(p) for p in true_x_ints])
+
+                    if correct_x:
+                        st.success("כל הכבוד! מצאת את נקודות החיתוך עם ציר x.")
+                        show_final_step = True
                     else:
-                        # הניסוח המרוכך החדש שלך:
-                        st.info("זו לא התשובה הנכונה. אני ממליץ לך לקרוא את הרמז ולנסות שוב, ואם אינך רוצה לנסות שוב – לחץ על 'הצג פתרון וסרטט'.")
+                        st.info("לא, זאת לא התשובה הנכונה, אני ממליץ לך לקרוא את הרמז ולנסות שוב ואם אינך רוצה לנסות שוב לחץ על הצג פיתרון ושרטט.")
                 except:
-                    st.warning("ודא שהזנת מספרים תקינים.")
+                    st.warning("נא להזין מספרים תקינים מופרדים בפסיק.")
 
-            if st.button("הצג פתרון וסרטט"):
-                show_plot = True
+            if st.button("הצג פיתרון ושרטט"):
+                show_final_step = True
 
-            if show_plot:
-                st.subheader("מיקום האסימפטוטות על הצירים:")
+            if show_final_step:
+                st.write(f"נקודות החיתוך עם ציר x הן: **{', '.join(map(str, true_x_ints)) if true_x_ints else 'אין'}**")
+                
+                # יצירת גרף עם הנקודות
                 fig = go.Figure()
+                # הוספת קווי אסימפטוטות
                 for pt in true_pts:
-                    fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
+                    fig.add_vline(x=float(pt), line_dash="dash", line_color="red")
                 
-                h_val_lim = sp.limit(f, x, sp.oo)
-                if h_val_lim.is_finite:
-                    fig.add_hline(y=float(h_val_lim), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_val_lim)}")
-                
-                fig.update_xaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
-                fig.update_yaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
-                fig.update_layout(plot_bgcolor='white', height=500)
+                # הוספת נקודות החיתוך כנקודות ירוקות על הגרף
+                for val in true_x_ints:
+                    fig.add_trace(go.Scatter(x=[val], y=[0], mode='markers', marker=dict(color='green', size=12), name=f"חיתוך x: ({val},0)"))
+
+                fig.update_xaxes(zeroline=True, zerolinewidth=2, zerolinecolor='black', range=[-10, 10])
+                fig.update_yaxes(zeroline=True, zerolinewidth=2, zerolinecolor='black', range=[-10, 10])
+                fig.update_layout(title="מיקום נקודות החיתוך על הצירים", showlegend=True)
                 st.plotly_chart(fig)
 
                 st.markdown("---")
