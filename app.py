@@ -3,20 +3,18 @@ import sympy as sp
 import numpy as np
 import plotly.graph_objects as go
 
-# הגדרות עמוד
 st.set_page_config(page_title="MathBuddy", layout="centered")
 
 st.title("🧪 מעבדת החקירה של שמעון")
-st.write("כאן לומדים לחקור פונקציות צעד אחר צעד.")
+st.write("כאן בונים את הפונקציה צעד אחר צעד.")
 
 def format_num(n):
     try:
-        n_float = float(n)
-        return int(n_float) if n_float.is_integer() else round(n_float, 2)
+        val = float(n)
+        return int(val) if val.is_integer() else round(val, 2)
     except:
         return n
 
-# הזנת פונקציה
 input_func = st.sidebar.text_input("הזן פונקציה לחקירה:", "x**2 / (x**2 + 2*x - 3)")
 
 if input_func:
@@ -25,42 +23,80 @@ if input_func:
         f = sp.sympify(input_func)
         num, den = sp.fraction(f)
         
-        # חישוב נתונים מתמטיים מראש
-        true_domain = sp.solve(den, x)
-        true_pts = sorted([format_num(p.evalf()) for p in true_domain])
+        # חישוב נתונים
+        domain_solutions = sp.solve(den, x)
+        true_pts = sorted([format_num(p.evalf()) for p in domain_solutions])
         true_pts_str = ", ".join([str(p) for p in true_pts])
         
-        horiz_asy = sp.limit(f, x, sp.oo)
-        horiz_val = format_num(horiz_asy.evalf())
+        horiz_limit = sp.limit(f, x, sp.oo)
+        horiz_val = format_num(horiz_limit.evalf())
 
         # --- שלב 1: תחום הגדרה ---
         st.header("שלב 1: תחום הגדרה")
         st.latex(r"f(x) = " + sp.latex(f))
+        
+        with st.expander("🤔 איך מוצאים תחום הגדרה?"):
+            st.write("משווים את המכנה לאפס ($המכנה = 0$) ומוצאים את ה-x הבעייתיים.")
 
-        with st.expander("🤔 איך מוצאים תחום הגדרה? (הסבר תיאורטי)"):
-            st.write("כדי למצוא תחום הגדרה של שבר, נחפש מתי המכנה מתאפס ($המכנה = 0$). אלו הנקודות שהפונקציה לא מוגדרת בהן.")
+        u_domain = st.text_input("מהם הערכים שמאפסים את המכנה?", key="s1_in")
+        s1_passed = False
         
-        user_domain = st.text_input("מהם הערכים שמאפסים את המכנה? (הפרד בפסיקים):", key="domain_input")
-        
-        step_1_passed = False
-        if user_domain:
+        if u_domain:
             try:
-                user_pts = sorted([float(p.strip()) for p in user_domain.split(",")])
-                if np.allclose(user_pts, [float(p) for p in true_pts]):
-                    st.success("נכון מאוד!")
-                    step_1_passed = True
-            except: st.warning("נא להזין מספרים מופרדים בפסיק.")
+                u_pts = sorted([float(p.strip()) for p in u_domain.split(",")])
+                if np.allclose(u_pts, [float(p) for p in true_pts]):
+                    st.success("נכון!")
+                    s1_passed = True
+                else:
+                    st.error("לא מדויק.")
+            except: st.warning("הזן מספרים מופרדים בפסיק.")
 
-        if not step_1_passed:
-            if st.button("התייאשתי, הצג פתרון שורשים"):
-                st.info("מהלך הפתרון:")
+        if not s1_passed and st.button("התייאשתי, הצג פתרון"):
+            st.info(f"מהלך הפתרון: פותרים את {sp.latex(den)}=0")
+            st.write(f"הערכים הם: {true_pts_str}")
+            st.session_state['f_s1'] = True
+
+        if st.session_state.get('f_s1'): s1_passed = True
+
+        # --- שלב 2: אסימפטוטות אנכיות ---
+        s2_passed = False
+        if s1_passed:
+            st.markdown("---")
+            st.header("שלב 2: אסימפטוטות אנכיות")
+            u_v = st.text_input("מהן האסימפטוטות האנכיות? (x=?)", key="s2_in")
+            if u_v:
                 try:
-                    p_poly = sp.Poly(den, x)
-                    coeffs = p_poly.all_coeffs()
-                    if len(coeffs) == 3:
-                        a, b, c = [format_num(v) for v in coeffs]
-                        st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \cdot {a} \cdot {c}}}}}{{2 \cdot {a}}}")
+                    v_vals = sorted([float(p.strip()) for p in u_v.split(",")])
+                    if np.allclose(v_vals, [float(p) for p in true_pts]):
+                        st.success("מעולה!")
+                        s2_passed = True
                 except: pass
-                st.session_state['force_s1'] = True
+            
+            if not s2_passed and st.button("התייאשתי, סמן בגרף"):
+                st.session_state['f_s2'] = True
         
-        if st.session
+        if st.session_state.get('f_s2'): s2_passed = True
+
+        # --- שלב 3: אסימפטוטה אופקית ---
+        s3_passed = False
+        if s2_passed:
+            st.markdown("---")
+            st.header("שלב 3: אסימפטוטה אופקית")
+            with st.expander("🤔 איך מוצאים אסימפטוטה אופקית?"):
+                st.write("**כלל יחס המקדמים:** אם דרגת המונה והמכנה שווה, מחלקים את המקדמים של החזקה הכי גבוהה.")
+                st.write("**למשל:** ב-$f(x)=\\frac{3x^2}{1x^2}$ האסימפטוטה היא $y=3$.")
+
+            u_h = st.text_input("מהי האסימפטוטה האופקית? (y=?)", key="s3_in")
+            if u_h:
+                try:
+                    if np.isclose(float(u_h), float(horiz_val)):
+                        st.success(f"נכון! y = {horiz_val}")
+                        s3_passed = True
+                    else: st.error("טעות. בדוק את יחס המקדמים.")
+                except: pass
+            
+            if not s3_passed and st.button("התייאשתי, הצג אופקית"):
+                st.info(f"האסימפטוטה היא y = {horiz_val}")
+                st.session_state['f_s3'] = True
+
+        if st.session_
