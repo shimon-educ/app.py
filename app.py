@@ -45,7 +45,7 @@ if input_func:
                     st.success("כל הכבוד! אלו הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
-                    st.error("לא בדיוק...")
+                    st.error("לא בדיוק... נסה שוב או היעזר בפתרון.")
                     if st.button("התייאשתי, המשך לשלב הבא"):
                         st.session_state['force_step_2'] = True
                         st.rerun()
@@ -65,11 +65,11 @@ if input_func:
                 try:
                     user_asy_pts = sorted([float(p.strip()) for p in user_asymp.split(",")])
                     if np.allclose(user_asy_pts, [float(p) for p in true_pts]):
-                        st.success(f"נכון מאוד! x = {user_asymp}")
+                        st.success(f"נכון מאוד! האסימפטוטות הן x = {user_asymp}")
                         show_step_3 = True
                     else:
-                        st.error("אלו לא האסימפטוטות.")
-                        if st.button("דלג לשלב הבא"):
+                        st.error("אלו לא האסימפטוטות. רמז: אלו הערכים שמאפסים את המכנה.")
+                        if st.button("דלג לשלב האסימפטוטה האופקית"):
                             st.session_state['force_step_3'] = True
                             st.rerun()
                 except: pass
@@ -77,17 +77,17 @@ if input_func:
         if st.session_state.get('force_step_3'):
             show_step_3 = True
 
-        # --- שלב 3: אסימפטוטה אופקית (התוספת החדשה) ---
+        # --- שלב 3: אסימפטוטה אופקית ---
         show_plot = False
         if show_step_3:
             st.markdown("---")
             st.header("שלב 3: אסימפטוטה אופקית")
             
-            # חישוב אסימפטוטה אופקית אמיתית
+            # חישוב אסימפטוטה אופקית (גבול באינסוף)
             horiz_asymp_val = sp.limit(f, x, sp.oo)
             
-            st.write("כדי למצוא אסימפטוטה אופקית, נבדוק מה קורה ל-y כשה-x שואף לאינסוף.")
-            user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (רשום את המספר בלבד, למשל: 1):", key="horiz_input")
+            st.write("כעת נבדוק מה קורה לפונקציה כש-x שואף לאינסוף. מהי האסימפטוטה האופקית?")
+            user_horiz = st.text_input("הזן את ערך ה-y (למשל: 1):", key="horiz_input")
             
             if user_horiz:
                 try:
@@ -95,8 +95,8 @@ if input_func:
                         st.success(f"מעולה! האסימפטוטה האופקית היא y = {user_horiz}")
                         show_plot = True
                     else:
-                        st.error("רמז: הסתכל על המקדמים של החזקה הכי גבוהה.")
-                        if st.button("הצג פתרון ושרטט"):
+                        st.error("רמז: בדוק את היחס בין המקדמים של החזקה הכי גבוהה במונה ובמכנה.")
+                        if st.button("הצג פתרון ושרטט את המערכת"):
                             st.info(f"האסימפטוטה האופקית היא y = {horiz_asymp_val}")
                             st.session_state['force_plot'] = True
                             st.rerun()
@@ -105,15 +105,36 @@ if input_func:
         if st.session_state.get('force_plot'):
             show_plot = True
 
-        # שרטוט מערכת הצירים והאסימפטוטות
+        # --- שרטוט מערכת הצירים והאסימפטוטות ---
         if show_plot:
-            st.subheader("ה'שלד' של הפונקציה על מערכת הצירים:")
+            st.subheader("מערכת הצירים עם האסימפטוטות:")
             fig = go.Figure()
             
-            # הוספת אסימפטוטות אנכיות (באדום)
+            # אסימפטוטות אנכיות (אדום)
             for pt in true_pts:
                 fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
             
-            # הוספת אסימפטוטה אופקית (בכחול)
+            # אסימפטוטה אופקית (כחול)
             h_val = float(sp.limit(f, x, sp.oo))
-            fig.add_hline(y=h_val, line_dash="dash", line_color="blue", annotation_text=f"y={
+            fig.add_hline(y=h_val, line_dash="dash", line_color="blue", annotation_text=f"y={h_val}")
+            
+            # עיצוב מערכת צירים חזקה - "הצלב השחור"
+            fig.update_xaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10], gridcolor='lightgray')
+            fig.update_yaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10], gridcolor='lightgray')
+            
+            fig.update_layout(plot_bgcolor='white', height=500, xaxis_title="x", yaxis_title="y")
+            st.plotly_chart(fig)
+            
+            st.info("קיבלנו את ה'כלוב' שבו הפונקציה כלואה. עכשיו נראה לאן היא מטפסת ולאן היא יורדת.")
+
+            st.markdown("---")
+            st.subheader("השלב הבא: נגזרת ונקודות קיצון")
+            if st.checkbox("אני רוצה לבדוק את הנגזרת שחישבתי במחברת"):
+                st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
+
+    except Exception as e:
+        st.error("חל שגיאה בפענוח הפונקציה. וודא שהזנת אותה בפורמט Python (למשל x**2).")
+
+if st.sidebar.button("התחל חקירה חדשה"):
+    st.session_state.clear()
+    st.rerun()
