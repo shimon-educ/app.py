@@ -24,7 +24,7 @@ st.sidebar.info("""
 * **חזקה:** `**` (למשל `x**2`)
 * **כפל:** `*` (למשל `2*x`)
 * **חילוק:** `/` (למשל `1/x`)
-* **דוגמה:** `x/(x**3 - 8)`
+* **דוגמה:** `x**2 / (x**2 - 4)`
 """)
 
 input_func = st.sidebar.text_input("הזן פונקציה לחקירה:", "x**2 / (x**2 + 2*x - 3)")
@@ -32,12 +32,11 @@ input_func = st.sidebar.text_input("הזן פונקציה לחקירה:", "x**2 
 if input_func:
     x = sp.symbols('x')
     try:
-        # ניקוי רווחים ועיבוד הפונקציה
         clean_func_str = input_func.replace(" ", "")
         f = sp.sympify(clean_func_str)
         num, den = sp.fraction(f)
         
-        # חישוב תחום הגדרה - התיקון לחזקה שלישית: לוקחים רק פתרונות ממשיים
+        # חישוב תחום הגדרה - התיקון שמונע שגיאה בחזקה שלישית
         true_domain_raw = sp.solve(den, x)
         true_pts = sorted([format_num(sol.evalf()) for sol in true_domain_raw if sol.is_real])
         true_pts_str = ", ".join([str(p) for p in true_pts])
@@ -63,7 +62,7 @@ if input_func:
                     st.success("כל הכבוד! אלו בדיוק הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
-                    st.info("נראה שזו לא התשובה הנכונה. אני ממליץ לך להסתכל ברמזים למטה ולנסות שוב.")
+                    st.info("נראה שזו לא התשובה הנכונה. נסה שוב בעזרת הרמזים.")
                     
                     if st.checkbox("צריך רמז ראשון?"):
                         st.write("עליך לפתור את המשוואה:")
@@ -74,15 +73,16 @@ if input_func:
                         st.latex(sp.latex(sp.factor(den)) + "= 0")
 
                     if st.button("התייאשתי, הצג פתרון והמשך"):
-                        st.info("מהלך הפתרון:")
+                        st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
                         try:
-                            # ניסיון להציג נוסחת שורשים רק אם זה ריבועי
                             p = sp.Poly(den, x)
                             coeffs = p.all_coeffs()
                             if len(coeffs) == 3:
                                 a, b, c = [format_num(v) for v in coeffs]
+                                st.write(f"המקדמים הם: $a={a}, b={b}, c={c}$")
                                 st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
                                 delta = b**2 - 4*a*c
+                                st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \\cdot {a} \\cdot {c}}}}}{{2 \\cdot {a}}}")
                                 st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{delta}}}}}{{{2*a}}}")
                         except: pass
                         st.success(f"הערכים המאפסים הם: {true_pts_str}")
@@ -100,9 +100,9 @@ if input_func:
             st.header("שלב 2: אסימפטוטות")
             
             st.subheader("1. אסימפטוטות אנכיות")
-            with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אנכית?"):
-                st.write("הן נמצאות בערכי ה-x שמאפסים את המכנה.")
-                st.info(f"הערכים שמצאת הם: **{true_pts_str}**")
+            with st.expander("💡 רמז מפורט: אסימפטוטה אנכית"):
+                st.write("הן נמצאות בערכי ה-x שגורמים למכנה להיות אפס.")
+                st.info(f"הערכים שמצאת בשלב הקודם הם: **{true_pts_str}**")
                 st.write("התשובה צריכה להיכתב כ: **x = מספר**.")
 
             user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (x = ?):", key="asymp_input")
@@ -110,10 +110,19 @@ if input_func:
             st.subheader("2. אסימפטוטה אופקית")
             with st.expander("💡 רמז מפורט: אסימפטוטה אופקית"):
                 st.markdown("""
-                1. **החזקה הגבוהה ביותר למטה:** $y = 0$
-                2. **החזקות הגבוהות ביותר שוות:** מחלקים מקדמים.
-                3. **החזקה הגבוהה ביותר למעלה:** אין אסימפטוטה.
+                1. **החזקה הגבוהה ביותר במכנה (למטה):**
+                   * הפונקציה שואפת לאפס.
+                   * **דוגמה:** $f(x) = \\frac{2x+1}{x^2-4} \implies y = 0$
+                   
+                2. **החזקות הגבוהות ביותר שוות במונה ובמכנה:**
+                   * מחלקים את המקדמים של החזקות הגבוהות.
+                   * **דוגמה:** $f(x) = \\frac{6x^2+1}{2x^2-3} \implies y = \\frac{6}{2} = 3$
+                   
+                3. **החזקה הגבוהה ביותר במונה (למעלה):**
+                   * אין אסימפטוטה אופקית.
+                   * **דוגמה:** $f(x) = \\frac{x^3}{x^2+1} \implies \text{אין}$
                 """)
+                st.write("התשובה צריכה להיכתב כ: **y = מספר** (או 'אין').")
 
             user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
             
@@ -134,10 +143,11 @@ if input_func:
 
                 st.markdown("---")
                 st.subheader("השלב הבא: גזירה")
-                st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
+                if st.checkbox("בדוק את הנגזרת שחישבת"):
+                    st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
 
     except Exception as e:
-        st.error("הביטוי המתמטי לא תקין. בדוק את הוראות הכתיבה בסרגל הצד.")
+        st.error("הביטוי המתמטי לא תקין. בדוק את ההנחיות בסרגל הצד.")
 
 if st.sidebar.button("התחל חקירה חדשה"):
     st.session_state.clear()
