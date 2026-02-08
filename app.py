@@ -34,12 +34,6 @@ if input_func:
         # --- שלב 1: תחום הגדרה ---
         st.header("שלב 1: תחום הגדרה")
         st.latex(r"f(x) = " + sp.latex(f))
-
-        with st.expander("🤔 איך מוצאים תחום הגדרה? (הסבר תיאורטי)"):
-            st.write("""
-            **מה זה בכלל תחום הגדרה?**
-            במתמטיקה, אסור לחלק באפס. לכן עלינו למצוא אילו ערכי x מאפסים את המכנה ולהוציא אותם מהתחום.
-            """)
         
         user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
         
@@ -48,11 +42,11 @@ if input_func:
             try:
                 user_pts = sorted([float(p.strip()) for p in user_domain.split(",")])
                 if np.allclose(user_pts, [float(p) for p in true_pts]):
-                    st.success("כל הכבוד! אלו בדיוק הערכים שמאפסים את המכנה.")
+                    st.success("כל הכבוד! אלו הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
                     st.error("לא בדיוק...")
-                    if st.button("התייאשתי, הצג פתרון והמשך"):
+                    if st.button("התייאשתי, המשך לשלב הבא"):
                         st.session_state['force_step_2'] = True
                         st.rerun()
             except: st.warning("נא להזין מספרים מופרדים בפסיק.")
@@ -75,7 +69,7 @@ if input_func:
                         show_step_3 = True
                     else:
                         st.error("אלו לא האסימפטוטות.")
-                        if st.button("המשך לשלב הבא"):
+                        if st.button("דלג לשלב הבא"):
                             st.session_state['force_step_3'] = True
                             st.rerun()
                 except: pass
@@ -83,29 +77,27 @@ if input_func:
         if st.session_state.get('force_step_3'):
             show_step_3 = True
 
-        # --- שלב 3: אסימפטוטה אופקית (חדש!) ---
+        # --- שלב 3: אסימפטוטה אופקית (התוספת החדשה) ---
         show_plot = False
         if show_step_3:
             st.markdown("---")
             st.header("שלב 3: אסימפטוטה אופקית")
             
-            with st.expander("🤔 איך מוצאים אסימפטוטה אופקית?"):
-                st.write("אנחנו בודקים מה קורה לערך ה-y של הפונקציה כאשר x שואף לאינסוף או למינוס אינסוף.")
-            
             # חישוב אסימפטוטה אופקית אמיתית
-            horiz_asymp = sp.limit(f, x, sp.oo)
+            horiz_asymp_val = sp.limit(f, x, sp.oo)
             
-            user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (כתוב את ערך ה-y, למשל: 1):", key="horiz_input")
+            st.write("כדי למצוא אסימפטוטה אופקית, נבדוק מה קורה ל-y כשה-x שואף לאינסוף.")
+            user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (רשום את המספר בלבד, למשל: 1):", key="horiz_input")
             
             if user_horiz:
                 try:
-                    if float(user_horiz) == float(horiz_asymp):
-                        st.success(f"מצוין! האסימפטוטה האופקית היא y = {user_horiz}")
+                    if float(user_horiz) == float(horiz_asymp_val):
+                        st.success(f"מעולה! האסימפטוטה האופקית היא y = {user_horiz}")
                         show_plot = True
                     else:
-                        st.error(f"לא מדויק. רמז: בדוק את היחס בין המקדם של החזקה הכי גבוהה במונה לבין המכנה.")
+                        st.error("רמז: הסתכל על המקדמים של החזקה הכי גבוהה.")
                         if st.button("הצג פתרון ושרטט"):
-                            st.info(f"האסימפטוטה האופקית היא y = {horiz_asymp}")
+                            st.info(f"האסימפטוטה האופקית היא y = {horiz_asymp_val}")
                             st.session_state['force_plot'] = True
                             st.rerun()
                 except: pass
@@ -113,9 +105,15 @@ if input_func:
         if st.session_state.get('force_plot'):
             show_plot = True
 
-        # מערכת צירים משודרגת
+        # שרטוט מערכת הצירים והאסימפטוטות
         if show_plot:
-            st.subheader("מערכת הצירים עם האסימפטוטות:")
+            st.subheader("ה'שלד' של הפונקציה על מערכת הצירים:")
             fig = go.Figure()
             
-            # אסימפטוטות אנכיות
+            # הוספת אסימפטוטות אנכיות (באדום)
+            for pt in true_pts:
+                fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
+            
+            # הוספת אסימפטוטה אופקית (בכחול)
+            h_val = float(sp.limit(f, x, sp.oo))
+            fig.add_hline(y=h_val, line_dash="dash", line_color="blue", annotation_text=f"y={
