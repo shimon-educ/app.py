@@ -45,6 +45,7 @@ if input_func:
         user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
         
         show_step_2 = False
+        
         if user_domain:
             try:
                 user_pts = sorted([float(p.strip()) for p in user_domain.split(",")])
@@ -53,9 +54,11 @@ if input_func:
                     show_step_2 = True
                 else:
                     st.error("לא בדיוק... הערכים האלו לא מאפסים את המכנה.")
+                    
                     if st.checkbox("צריך רמז ראשון?"):
                         st.write("עליך לפתור את המשוואה:")
                         st.latex(sp.latex(den) + "= 0")
+                        
                     if st.checkbox("צריך עזרה בפירוק המכנה?"):
                         st.write("אפשר לכתוב את המכנה כך:")
                         st.latex(sp.latex(sp.factor(den)) + "= 0")
@@ -87,21 +90,30 @@ if input_func:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
-            # שאלות הקלט
-            st.subheader("חקירת האסימפטוטות")
-            user_asymp = st.text_input("1. מהן משוואות האסימפטוטות האנכיות? (למשל: 3, 1-):", key="asymp_input")
-            user_horiz = st.text_input("2. מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
-
-            # כפתורי הסבר (עזרה לתלמיד)
+            # אסימפטוטות אנכיות
+            st.subheader("1. אסימפטוטות אנכיות")
+            user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (למשל: 3, 1-):", key="asymp_input")
+            
+            # אסימפטוטה אופקית
+            st.subheader("2. אסימפטוטה אופקית")
+            user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
+            
+            # --- כפתורי הסבר לתלמיד ---
             col1, col2 = st.columns(2)
             with col1:
-                with st.expander("💡 איך מוצאים אנכיות?"):
-                    st.write("האסימפטוטות האנכיות נמצאות בנקודות שמאפסות את המכנה (אלו שמצאת בשלב הקודם!), בתנאי שהן לא מאפסות גם את המונה.")
+                with st.expander("💡 איך מוצאים אסימפטוטה אנכית?"):
+                    st.write("""
+                    האסימפטוטה האנכית מתקבלת בערכי ה-x שמאפסים את המכנה **אבל לא** את המונה. 
+                    אלו בדיוק הנקודות שהוצאנו מתחום ההגדה!
+                    """)
             with col2:
-                with st.expander("💡 איך מוצאים אופקית?"):
-                    st.write("בודקים את היחס בין החזקה הגבוהה במונה לחזקה הגבוהה במכנה:")
-                    st.write("- חזקות שוות? ה-y שווה ליחס המקדמים.")
-                    st.write("- מכנה 'חזק' יותר? האסימפטוטה היא $y=0$.")
+                with st.expander("💡 איך מוצאים אסימפטוטה אופקית?"):
+                    st.write("""
+                    בודקים את היחס בין החזקה הגבוהה ביותר במונה לבין החזקה הגבוהה ביותר במכנה:
+                    1. חזקה גבוהה במכנה? האסימפטוטה היא **y = 0**.
+                    2. חזקות שוות? האסימפטוטה היא יחס המקדמים.
+                    3. חזקה גבוהה במונה? אין אסימפטוטה אופקית.
+                    """)
             
             show_plot = False
             if user_asymp and user_horiz:
@@ -109,11 +121,4 @@ if input_func:
                 try:
                     user_asy_pts = sorted([float(p.strip()) for p in user_asymp.split(",")])
                     correct_v = np.allclose(user_asy_pts, [float(p) for p in true_pts])
-                    correct_h = np.isclose(float(user_horiz), float(true_horiz))
-                    
-                    if correct_v and correct_h:
-                        st.success("מעולה! מצאת את כל האסימפטוטות.")
-                        show_plot = True
-                    else:
-                        if not correct_v: st.error("יש טעות באנכיות.")
-                        if not correct
+                    correct_h =
