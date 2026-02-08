@@ -39,7 +39,6 @@ if input_func:
             st.write("""
             **מה זה בכלל תחום הגדרה?**
             במתמטיקה, אסור לחלק באפס. לכן עלינו למצוא אילו ערכי x מאפסים את המכנה ולהוציא אותם מהתחום.
-            **השלבים:** משווים את המכנה לאפס ($המכנה = 0$) ופתורים את המשוואה.
             """)
         
         user_domain = st.text_input("הזן את הערכים שמאפסים את המכנה (למשל: 5, 2-):", key="domain_input")
@@ -52,7 +51,7 @@ if input_func:
                     st.success("כל הכבוד! אלו בדיוק הערכים שמאפסים את המכנה.")
                     show_step_2 = True
                 else:
-                    st.info("נראה שזו לא התשובה הנכונה. אני ממליץ לך להסתכל ברמזים למטה ולנסות שוב.")
+                    st.info("נראה שזו לא התשובה הנכונה. נסה שוב בעזרת הרמזים.")
             except:
                 st.warning("נא להזין מספרים מופרדים בפסיק.")
 
@@ -69,70 +68,63 @@ if input_func:
             user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (למשל: 1, 3-):", key="asymp_input")
             
             st.subheader("2. אסימפטוטה אופקית")
-            with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אופקית?"):
-                st.write("אנו בודקים את 'מלחמת הכוחות' בין המונה למכנה (החזקה הגבוהה ביותר):")
+            with st.expander("💡 רמז מפורט: אסימפטוטה אופקית"):
                 st.markdown("""
-                1. **החזקה הגבוהה ביותר נמצאת במכנה (למטה):** $y = 0$
-                2. **החזקות הגבוהות ביותר שוות:** מחלקים את המקדמים.
-                3. **החזקה הגבוהה ביותר נמצאת במונה (למעלה):** אין אסימפטוטה.
+                * **חזקה גבוהה במכנה:** $y = 0$. דוגמה: $f(x) = \\frac{2x+1}{x^2-4} \implies y = 0$
+                * **חזקות שוות:** מחלקים מקדמים. דוגמה: $f(x) = \\frac{6x^2+1}{2x^2-3} \implies y = 3$
+                * **חזקה גבוהה במונה:** אין אסימפטוטה. דוגמה: $f(x) = \\frac{x^3}{x^2+1} \implies \text{אין}$
                 """)
             user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
             
             if user_asymp and user_horiz:
-                show_step_3 = True
+                # בדיקה לוגית לפני מעבר לשלב 3
+                try:
+                    true_h = sp.limit(f, x, sp.oo)
+                    u_h = user_horiz.replace('y','').replace('=','').strip()
+                    u_v = sorted([float(p.strip()) for p in user_asymp.replace('x','').replace('=','').split(",")])
+                    
+                    check_v = np.allclose(u_v, [float(p) for p in true_pts])
+                    check_h = np.isclose(float(u_h), float(true_h)) if u_h.lower() != "אין" else not true_h.is_finite
+                    
+                    if check_v and check_h:
+                        st.success("מעולה! בוא נמשיך לנקודות חיתוך.")
+                        show_step_3 = True
+                    else:
+                        st.info("זו לא התשובה הנכונה. נסה שוב או הצג פתרון.")
+                except: pass
 
-        # --- שלב 3: נקודות חיתוך עם הצירים ---
+        # --- שלב 3: נקודות חיתוך ---
         if show_step_3:
             st.markdown("---")
             st.header("שלב 3: נקודות חיתוך עם הצירים")
             
-            st.subheader("1. חיתוך עם ציר x")
-            with st.expander("💡 רמז: חיתוך עם ציר x"):
-                st.write("מציבים $y=0$ (כלומר, מוצאים מתי המונה שווה לאפס).")
-            user_x_int = st.text_input("הזן את ערכי ה-x של נקודות החיתוך (למשל: 0, 4):", key="x_int_input")
-            
-            st.subheader("2. חיתוך עם ציר y")
-            with st.expander("💡 רמז: חיתוך עם ציר y"):
-                st.write("מציבים $x=0$ בפונקציה.")
-            user_y_int = st.text_input("הזן את ערך ה-y של נקודת החיתוך:", key="y_int_input")
+            user_x_int = st.text_input("ערכי x של נקודות החיתוך עם ציר x:", key="x_int_input")
+            user_y_int = st.text_input("ערך y של נקודת החיתוך עם ציר y:", key="y_int_input")
 
             if st.button("הצג פתרון וסרטט"):
-                # חישוב פתרונות חיתוך לצורך הצגה
                 x_roots = [r for r in sp.solve(num, x) if r not in true_domain]
                 y_val = f.subs(x, 0) if 0 not in true_domain else None
                 
-                st.write(f"**נקודות חיתוך עם ציר x:** {[(format_num(r), 0) for r in x_roots] if x_roots else 'אין'}")
-                st.write(f"**נקודת חיתוך עם ציר y:** {(0, format_num(y_val)) if y_val is not None else 'אין'}")
+                st.write(f"**חיתוך x:** {[(format_num(r), 0) for r in x_roots] if x_roots else 'אין'}")
+                st.write(f"**חיתוך y:** {(0, format_num(y_val)) if y_val is not None else 'אין'}")
 
-                # סרטוט הגרף האינטראקטיבי
                 fig = go.Figure()
-                
-                # אסימפטוטות
                 for pt in true_pts:
                     fig.add_vline(x=float(pt), line_dash="dash", line_color="red", annotation_text=f"x={pt}")
-                h_val_lim = sp.limit(f, x, sp.oo)
-                if h_val_lim.is_finite:
-                    fig.add_hline(y=float(h_val_lim), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_val_lim)}")
+                h_lim = sp.limit(f, x, sp.oo)
+                if h_lim.is_finite:
+                    fig.add_hline(y=float(h_lim), line_dash="dash", line_color="blue", annotation_text=f"y={format_num(h_lim)}")
                 
-                # נקודות חיתוך על הגרף
+                # הוספת הנקודות לגרף
                 for r in x_roots:
-                    fig.add_trace(go.Scatter(x=[float(r)], y=[0], mode='markers', marker=dict(color='green', size=10), name="חיתוך x"))
+                    fig.add_trace(go.Scatter(x=[float(r)], y=[0], mode='markers+text', text=["חיתוך x"], textposition="top center", marker=dict(color='green', size=12)))
                 if y_val is not None:
-                    fig.add_trace(go.Scatter(x=[0], y=[float(y_val)], mode='markers', marker=dict(color='orange', size=10), name="חיתוך y"))
+                    fig.add_trace(go.Scatter(x=[0], y=[float(y_val)], mode='markers+text', text=["חיתוך y"], textposition="middle right", marker=dict(color='orange', size=12)))
 
                 fig.update_xaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
                 fig.update_yaxes(zeroline=True, zerolinewidth=4, zerolinecolor='black', range=[-10, 10])
                 fig.update_layout(plot_bgcolor='white', height=500, showlegend=False)
                 st.plotly_chart(fig)
 
-                st.markdown("---")
-                st.subheader("השלב הבא: גזירה")
-                if st.checkbox("בדוק את הנגזרת שחישבת"):
-                    st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
-
     except Exception as e:
         st.error("הביטוי המתמטי לא תקין.")
-
-if st.sidebar.button("התחל חקירה חדשה"):
-    st.session_state.clear()
-    st.rerun()
