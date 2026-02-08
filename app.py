@@ -92,16 +92,25 @@ if input_func:
             
             # --- אסימפטוטות אנכיות ---
             st.subheader("1. אסימפטוטות אנכיות")
-            with st.expander("💡 רמז: איך מוצאים אסימפטוטה אנכית?"):
-                st.write("אסימפטוטה אנכית מתרחשת בערכי x שמאפסים את המכנה (אבל לא את המונה).")
-                st.write(f"הערכים שמצאת בשלב 1 הם: **{true_pts_str}**")
-                st.write("המשוואה נראית כך: **x = מספר**.")
+            with st.expander("💡 רמז מפורט עם דוגמאות: איך מוצאים אסימפטוטה אנכית?"):
+                st.write("אסימפטוטה אנכית היא 'קיר' שהפונקציה לא יכולה לעבור. היא נמצאת בערכי ה-x שגורמים למכנה להיות אפס.")
+                
+                st.markdown("**איך מוצאים?**")
+                st.write("לוקחים את הערכים שמאפסים את המכנה (אלו שמצאת בשלב 1).")
+                st.info(f"הערכים שמצאת הם: **{true_pts_str}**")
+                
+                st.markdown("**דוגמה:**")
+                st.write("בפונקציה הבאה, המכנה מתאפס ב- $x=2$ וב- $x=-2$:")
+                st.latex(r"f(x) = \frac{5}{x^2-4} \implies x=2, x=-2")
+                
+                st.warning("⚠️ **שים לב:** אם ערך מסוים מאפס גם את המכנה וגם את המונה, הוא עשוי להיות 'חור' בגרף ולא אסימפטוטה.")
+                st.write("התשובה צריכה להיכתב כ: **x = מספר**.")
 
             user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (x = ?):", key="asymp_input")
             
             # --- אסימפטוטה אופקית ---
             st.subheader("2. אסימפטוטה אופקית")
-            with st.expander("💡 רמז מפורט עם דוגמאות:"):
+            with st.expander("💡 רמז מפורט עם דוגמאות: איך מוצאים אסימפטוטה אופקית?"):
                 st.write("משווים את החזקה הגבוהה ביותר במונה לעומת המכנה:")
                 
                 st.markdown("**1. המכנה 'חזק' יותר (חזקה גבוהה למטה):**")
