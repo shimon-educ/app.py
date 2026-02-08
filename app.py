@@ -90,3 +90,64 @@ if input_func:
         if show_step_2:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות אנכיות")
+            
+            with st.expander("🤔 מהן אסימפטוטות אנכיות? (הסבר תיאורטי)"):
+                st.write("""
+                אסימפטוטה אנכית היא קו ישר שהגרף מתקרב אליו מאוד אבל לא נוגע בו.
+                בפונקציות כאלו, **נקודות אי-ההגדרה** שמצאנו קודם הן בדרך כלל האסימפטוטות האנכיות.
+                """)
+
+            st.write("על סמך מה שמצאנו, מהן משוואות האסימפטוטות האנכיות?")
+            user_asymp = st.text_input("הזן את ערכי ה-x (למשל: 3, 1-):", key="asymp_input")
+            
+            show_plot = False
+            if user_asymp:
+                try:
+                    user_asy_pts = sorted([float(p.strip()) for p in user_asymp.split(",")])
+                    if np.allclose(user_asy_pts, [float(p) for p in true_pts]):
+                        st.success(f"נכון מאוד! האסימפטוטות הן x = {user_asymp}")
+                        show_plot = True
+                    else:
+                        st.error("אלו לא האסימפטוטות. רמז: אלו אותם ערכים שמאפסים את המכנה!")
+                        if st.button("התייאשתי, הצג הסבר וסרטט"):
+                            st.info(f"האסימפטוטות האנכיות הן: x = {true_pts_str}")
+                            st.session_state['force_plot'] = True
+                            st.rerun()
+                except: st.warning("נא להזין מספרים מופרדים בפסיק.")
+
+            if st.session_state.get('force_plot'):
+                show_plot = True
+
+            # מערכת צירים עם אסימפטוטות בלבד
+            if show_plot:
+                st.subheader("מיקום האסימפטוטות על הצירים:")
+                fig = go.Figure()
+                for pt in true_pts:
+                    fig.add_vline(x=float(pt), line_dash="dash", line_color="red", 
+                                  annotation_text=f"x={pt}", annotation_position="top")
+                
+                fig.update_layout(xaxis=dict(range=[-10, 10]), yaxis=dict(range=[-10, 10]),
+                                  xaxis_title="x", yaxis_title="y")
+                st.plotly_chart(fig)
+                
+                # כפתור מעבר לגרף המלא
+                if st.checkbox("אני רוצה לראות איך הפונקציה נראית ביניהן (הצג גרף מלא)"):
+                    f_num = sp.lambdify(x, f, "numpy")
+                    x_vals = np.linspace(-10, 10, 1000)
+                    with np.errstate(divide='ignore', invalid='ignore'):
+                        y_vals = f_num(x_vals)
+                    y_vals[np.abs(y_vals) > 20] = np.nan
+                    fig.add_trace(go.Scatter(x=x_vals, y=y_vals, name="f(x)", line=dict(color='#1f77b4', width=2)))
+                    st.plotly_chart(fig)
+
+                st.markdown("---")
+                st.subheader("השלב הבא: גזירה")
+                if st.checkbox("בדוק את הנגזרת שחישבת במחברת"):
+                    st.latex(r"f'(x) = " + sp.latex(sp.simplify(sp.diff(f, x))))
+
+    except Exception as e:
+        st.error("הביטוי המתמטי לא תקין.")
+
+if st.sidebar.button("התחל חקירה חדשה"):
+    st.session_state.clear()
+    st.rerun()
