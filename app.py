@@ -90,19 +90,29 @@ if input_func:
             st.markdown("---")
             st.header("שלב 2: אסימפטוטות")
             
+            # --- אסימפטוטות אנכיות ---
             st.subheader("1. אסימפטוטות אנכיות")
-            
-            # כפתור רמז מפורט כפי שביקשת
-            with st.expander("💡 רמז: לא יודע איך למצוא אסימפטוטה אנכית?"):
-                st.write("אסימפטוטה אנכית היא קו ישר שהפונקציה מתקרבת אליו מאוד אך לעולם לא נוגעת בו.")
-                st.write("זוכר את הערכים שמאפסים את המכנה שמצאת ב**שלב 1**?")
-                st.info(f"הערכים שמצאת היו: **{true_pts_str}**")
-                st.write("אלו בדיוק הנקודות שבהן נוצרת אסימפטוטה אנכית (אלא אם הן מאפסות גם את המונה).")
-                st.write("המשוואה של קו כזה נראית תמיד כך: **מספר = x**.")
+            with st.expander("💡 רמז: איך מוצאים אסימפטוטה אנכית?"):
+                st.write("אסימפטוטה אנכית מתרחשת בערכי x שמאפסים את המכנה (אבל לא את המונה).")
+                st.write(f"הערכים שמצאת בשלב 1 הם: **{true_pts_str}**")
+                st.write("המשוואה נראית כך: **מספר = x**.")
 
             user_asymp = st.text_input("מהן משוואות האסימפטוטות האנכיות? (x = ?):", key="asymp_input")
             
+            # --- אסימפטוטה אופקית ---
             st.subheader("2. אסימפטוטה אופקית")
+            with st.expander("💡 רמז מפורט: איך מוצאים אסימפטוטה אופקית?"):
+                st.write("כדי למצוא אסימפטוטה אופקית, עלינו להשוות את **החזקה הגבוהה ביותר** במונה לזו שבמכנה:")
+                st.info("""
+                * **המכנה 'חזק' יותר (חזקה גבוהה יותר במכנה):** הפונקציה שואפת ל-0. 
+                    **המשוואה:** $y = 0$
+                * **החזקות שוות (אותה חזקה במונה ובמכנה):** מחלקים את המקדם של החזקה הגבוהה במונה במקדם של המכנה.
+                    **המשוואה:** $y = \\frac{a}{b}$
+                * **המונה 'חזק' יותר (חזקה גבוהה יותר במונה):** הפונקציה גדלה לאינסוף.
+                    **התוצאה:** אין אסימפטוטה אופקית.
+                """)
+                st.write("המשוואה תמיד תתחיל ב- **y =**.")
+
             user_horiz = st.text_input("מהי משוואת האסימפטוטה האופקית? (y = ?):", key="horiz_input")
             
             show_plot = False
@@ -124,19 +134,10 @@ if input_func:
                         st.success("מעולה! מצאת את כל האסימפטוטות.")
                         show_plot = True
                     else:
-                        if not correct_v:
-                            st.error("יש טעות באסימפטוטות האנכיות.")
-                        if not correct_h:
-                            st.error("יש טעות באסימפטוטה האופקית.")
-                            with st.expander("🔍 רמז לאסימפטוטה אופקית"):
-                                st.write("בדוק את החזקה הגבוהה ביותר במונה לעומת המכנה:")
-                                st.info("""
-                                1. המכנה 'חזק' יותר? האסימפטוטה היא **y = 0**.
-                                2. החזקות שוות? חלק את המקדם של המונה במקדם של המכנה.
-                                3. המונה 'חזק' יותר? **אין** אסימפטוטה אופקית.
-                                """)
+                        if not correct_v: st.error("יש טעות באסימפטוטות האנכיות.")
+                        if not correct_h: st.error("יש טעות באסימפטוטה האופקית.")
                 except:
-                    st.warning("ודא שהזנת מספרים תקינים באסימפטוטות.")
+                    st.warning("ודא שהזנת מספרים תקינים.")
 
             if st.button("הצג פתרון וסרטט"):
                 show_plot = True
