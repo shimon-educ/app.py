@@ -58,28 +58,31 @@ if input_func:
                         st.latex(sp.latex(sp.factor(den)) + "= 0")
 
                     if st.button("התייאשתי, הצג פתרון והמשך"):
-                        # --- תוספת: הצגת מהלך פתרון המשוואה הריבועית ---
+                        # --- תצוגת מהלך הפתרון שביקשת ---
                         st.info("מהלך הפתרון באמצעות נוסחת השורשים:")
                         
-                        # חילוץ מקדמים למשוואה ax^2 + bx + c
                         try:
-                            poly = sp.Poly(den, x)
-                            a = format_num(poly.coeff_inst(x, 2)) if poly.degree() >= 2 else 0
-                            b = format_num(poly.coeff_inst(x, 1)) if poly.degree() >= 1 else 0
-                            c = format_num(poly.coeff_inst(x, 0))
-                            
-                            st.write(f"המקדמים הם: $a={a}, b={b}, c={c}$")
-                            st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
-                            
-                            delta = b**2 - 4*a*c
-                            st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \cdot {a} \cdot {c}}}}}{{2 \cdot {a}}}")
-                            st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{delta}}}}}{{{2*a}}}")
+                            # חילוץ אוטומטי של המקדמים
+                            poly_den = sp.Poly(den, x)
+                            coeffs = poly_den.all_coeffs()
+                            # התאמה למקרה של משוואה ריבועית (3 מקדמים)
+                            if len(coeffs) == 3:
+                                a, b, c = coeffs
+                                a, b, c = format_num(a), format_num(b), format_num(c)
+                                
+                                st.write(f"המקדמים הם: $a={a}, b={b}, c={c}$")
+                                st.latex(r"x_{1,2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}")
+                                
+                                # הצבה בנוסחה
+                                discriminant = b**2 - 4*a*c
+                                st.latex(f"x_{{1,2}} = \\frac{{-({b}) \\pm \\sqrt{{{b}^2 - 4 \cdot {a} \cdot {c}}}}}{{2 \cdot {a}}}")
+                                st.latex(f"x_{{1,2}} = \\frac{{{-b} \\pm \\sqrt{{{discriminant}}}}}{{{2*a}}}")
                         except:
-                            st.write("פתרון המשוואה:")
-                            
+                            pass # אם זו לא משוואה ריבועית רגילה, פשוט נראה את התוצאה
+                        
                         st.success("הערכים המאפסים הם: " + true_pts_str)
                         st.session_state['force_step_2'] = True
-                        st.rerun() # רענון כדי להציג את הגרף מיד
+                        st.rerun()
             except:
                 st.warning("נא להזין מספרים מופרדים בפסיק.")
 
